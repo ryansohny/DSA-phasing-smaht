@@ -88,9 +88,5 @@ rule haplotagged_vcf:
     benchmark:
         "benchmark/{sm}/haplotagged_vcf/{sm}.bench.txt"
     shell:
-        """
-        whatshap haplotagphase \
-            -r {input.ref} \
-            -o {output.vcf} \
-            {input.vcf} {input.cram}
-        """
+        "whatshap haplotagphase -r {input.ref}"
+        " -o {output.vcf} {input.vcf} {input.cram}"
