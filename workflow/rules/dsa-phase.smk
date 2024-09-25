@@ -36,12 +36,13 @@ rule cram:
     resources:
         runtime=12 * 60,
         mem_mb=16 * 1024,
+        min_mapq=config.get("min_mapq", 1),
     threads: 32
     params:
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
     shell:
         "python {params.script} {input.bam} - {output.assignments}"
-        " -t {threads} --hap1-tag {H1_TAG} --hap2-tag {H2_TAG}"
+        " -t {threads} --hap1-tag {H1_TAG} --hap2-tag {H2_TAG} -m {params.min_mapq}"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         "  --output-fmt-option embed_ref=1"
         "  --write-index -o {output.cram}"

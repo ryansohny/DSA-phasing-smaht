@@ -10,11 +10,11 @@ from tqdm import tqdm
 import pandas as pd
 
 
-def run(bam, obam, hap1_tag="hap1", hap2_tag="hap2", min_mapq=0):
+def run(bam, obam, hap1_tag="hap1", hap2_tag="hap2", min_mapq=1):
     read_assignments = []
     for rec in tqdm(bam.fetch(until_eof=True)):
         is_primary = not rec.is_secondary and not rec.is_supplementary
-        if rec.is_unmapped or rec.mapping_quality <= min_mapq:
+        if rec.is_unmapped or rec.mapping_quality < min_mapq:
             rec.set_tag("HP", None)
         elif hap1_tag in rec.reference_name and hap2_tag in rec.reference_name:
             rec.set_tag("HP", None)
@@ -39,7 +39,7 @@ def main(
     *,
     hap1_tag: str = "haplotype1",
     hap2_tag: str = "haplotype2",
-    min_mapq: int = 0,
+    min_mapq: int = 1,
     threads: int = 8,
     verbose: int = 0,
 ):
