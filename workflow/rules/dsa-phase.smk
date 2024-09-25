@@ -36,9 +36,9 @@ rule cram:
     resources:
         runtime=12 * 60,
         mem_mb=16 * 1024,
-        min_mapq=config.get("min_mapq", 1),
     threads: 32
     params:
+        min_mapq=config.get("min_mapq", 1),
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
     shell:
         "python {params.script} {input.bam} - {output.assignments}"
