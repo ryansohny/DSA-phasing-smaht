@@ -30,10 +30,10 @@ def main(
         infile = sys.stdin
     if outfile is None or outfile == "-":
         outfile = sys.stdout
-    
+
     # make the query name the index
     assignments = pd.read_csv(assignments, sep="\t").set_index("read_name")
-    
+
     bam = pysam.AlignmentFile(infile, "rb", threads=threads)
     o_bam = pysam.AlignmentFile(outfile, "wu", template=bam, threads=threads)
     for rec in tqdm(bam.fetch(until_eof=True)):

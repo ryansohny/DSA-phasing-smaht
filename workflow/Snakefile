@@ -12,9 +12,9 @@ from snakemake.utils import validate
 validate(config, "config.schema.yaml")
 
 
-REF = config["reference"]
-DSA = config["DSA"]
-BAM = config["bam"]
+REF = os.path.abspath(config["reference"])
+DSA = os.path.abspath(config["DSA"])
+BAM = os.path.abspath(config["bam"])
 VCF = config.get("vcf", [])
 H1_TAG = config["h1-tag"]
 H2_TAG = config["h2-tag"]
@@ -25,13 +25,16 @@ DEFAULT_ENV = "../envs/env.yml"
 # get the name of the data from the bam
 SM = [os.path.basename(BAM).split(".")[0]]
 
+
 include: "rules/dsa-phase.smk"
+
 
 # build the list of needed outputs
 needed_outputs = expand(rules.cram.output.cram, sm=SM)
 needed_outputs += expand(rules.add_assignments.output.cram, sm=SM)
 if len(VCF) > 0:
     needed_outputs += expand(rules.haplotagged_vcf.output.vcf, sm=SM)
+
 
 rule all:
     input:
