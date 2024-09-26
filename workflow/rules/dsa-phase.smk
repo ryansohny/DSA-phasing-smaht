@@ -11,9 +11,11 @@ rule pbmm2:
     resources:
         runtime=12 * 60,
         mem_mb=3 * MAX_THREADS * 1024,
+        tmpdir="temp/tmp.{sm}.pbmm2.sorts/",
     threads: MAX_THREADS
     shell:
-        "pbmm2 align -j {threads}"
+        "mkdir -p {resources.tmpdir} && "
+        " pbmm2 align -j {threads}"
         " --preset CCS --sort"
         " --sort-memory 1G"
         " --log-level DEBUG"
