@@ -10,13 +10,13 @@ rule pbmm2:
         DEFAULT_ENV
     resources:
         runtime=12 * 60,
-        mem_mb=2 * MAX_THREADS * 1024,
+        mem_mb=3 * MAX_THREADS * 1024,
     threads: MAX_THREADS
     shell:
         "pbmm2 align -j {threads}"
         " --preset CCS --sort"
         " --sort-memory 1G"
-        " --log-level INFO"
+        " --log-level DEBUG"
         " --strip"
         " --unmapped"
         " {input.dsa} {input.bam} {output.bam}"
