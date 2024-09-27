@@ -16,8 +16,7 @@ rule pbmm2:
         sort_memory=8,
         chunk_size=MAX_THREADS * 3,
     shell:
-        "mkdir -p {resources.tmpdir} && "
-        " pbmm2 align -j {threads} -J {params.sort_threads}"
+        "pbmm2 align -j {threads} -J {params.sort_threads}"
         " --preset CCS --sort"
         " --sort-memory {params.sort_memory}G"
         " --chunk-size {params.chunk_size}"
