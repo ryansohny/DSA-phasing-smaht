@@ -39,7 +39,7 @@ def main(
     for rec in tqdm(bam.fetch(until_eof=True)):
         if rec.query_name in assignments.index:
             hp = assignments.loc[rec.query_name, "haplotype"]
-            logging.warn(f"Setting HP tag to {hp} for {rec.query_name}")
+            logging.warning(f"Setting HP tag to {hp} for {rec.query_name}")
             rec.set_tag("HP", hp)
         else:
             rec.set_tag("HP", None)
