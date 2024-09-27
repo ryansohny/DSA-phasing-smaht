@@ -76,6 +76,24 @@ rule add_assignments:
         "  --write-index -o {output.cram}"
 
 
+# add read assignments to the input bam files
+rule phase_percentages:
+    input:
+        cram=rules.add_assignments.output.cram,
+    output:
+        txt="results/{sm}.phase-percentages.txt",
+    conda:
+        DEFAULT_ENV
+    resources:
+        runtime=12 * 60,
+        mem_mb=16 * 1024,
+    threads: 16
+    params:
+        script=workflow.source_path("../scripts/phase-percentages.py"),
+    shell:
+        "python {params.script} -t {threads} {input.cram} > {output.txt}"
+
+
 rule haplotagged_vcf:
     input:
         vcf=VCF,

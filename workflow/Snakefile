@@ -32,6 +32,7 @@ include: "rules/dsa-phase.smk"
 # build the list of needed outputs
 needed_outputs = expand(rules.cram.output.cram, sm=SM)
 needed_outputs += expand(rules.add_assignments.output.cram, sm=SM)
+needed_outputs += expand(rules.phase_percentages.output.txt, sm=SM)
 if len(VCF) > 0:
     needed_outputs += expand(rules.haplotagged_vcf.output.vcf, sm=SM)
 
