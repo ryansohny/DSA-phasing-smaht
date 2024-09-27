@@ -9,6 +9,7 @@ from tqdm import tqdm
 import pandas as pd
 import logging
 
+
 def main(
     infile: Optional[Path] = None,
     assignments: Optional[Path] = None,
