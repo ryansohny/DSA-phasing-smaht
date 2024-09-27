@@ -21,7 +21,7 @@ rule pbmm2:
         " pbmm2 align -j {threads} -J {params.sort_threads}"
         " --preset CCS --sort"
         " --sort-memory {params.sort_memory}G"
-        " --chunk-size {params.chunk-size}"
+        " --chunk-size {params.chunk_size}"
         " --log-level DEBUG"
         " --strip"
         " --unmapped"
