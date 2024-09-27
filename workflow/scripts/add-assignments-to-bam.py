@@ -7,7 +7,7 @@ import defopt
 import pysam
 from tqdm import tqdm
 import pandas as pd
-
+import logging
 
 def main(
     infile: Optional[Path] = None,
@@ -38,7 +38,9 @@ def main(
     o_bam = pysam.AlignmentFile(outfile, "wbu", template=bam, threads=threads)
     for rec in tqdm(bam.fetch(until_eof=True)):
         if rec.query_name in assignments.index:
-            rec.set_tag("HP", assignments.loc[rec.query_name, "haplotype"])
+            hp = assignments.loc[rec.query_name, "haplotype"]
+            logging.warn(f"Setting HP tag to {hp} for {rec.query_name}")
+            rec.set_tag("HP", hp)
         else:
             rec.set_tag("HP", None)
         o_bam.write(rec)

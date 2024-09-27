@@ -40,7 +40,7 @@ rule cram:
     resources:
         runtime=12 * 60,
         mem_mb=16 * 1024,
-    threads: 32
+    threads: 16
     params:
         min_mapq=config.get("min_mapq", 1),
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
@@ -66,7 +66,7 @@ rule add_assignments:
     resources:
         runtime=12 * 60,
         mem_mb=16 * 1024,
-    threads: 32
+    threads: 16
     params:
         script=workflow.source_path("../scripts/add-assignments-to-bam.py"),
     shell:
