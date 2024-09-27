@@ -10,7 +10,6 @@ rule pbmm2:
     resources:
         runtime=12 * 60,
         mem_mb=3 * MAX_THREADS * 1024,
-        tmpdir="temp/tmp.pbmm2.sorts/",
     threads: MAX_THREADS
     params:
         sort_threads=MAX_THREADS // 4,
