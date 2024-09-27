@@ -40,9 +40,9 @@ def main(
         if rec.query_name in assignments.index:
             hp = assignments.loc[rec.query_name, "haplotype"]
             logging.warning(f"Setting HP tag to {hp} for {rec.query_name}")
-            rec.set_tag("HP", hp)
+            rec.set_tag("HP", hp, value_type="i")
         else:
-            rec.set_tag("HP", None)
+            rec.set_tag("HP", None, value_type="i")
         o_bam.write(rec)
 
     return 0
