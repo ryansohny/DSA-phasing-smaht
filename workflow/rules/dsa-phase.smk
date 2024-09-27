@@ -5,19 +5,21 @@ rule pbmm2:
     output:
         bam=temp("temp/{sm}.bam"),
         bai=temp("temp/{sm}.bam.bai"),
-        pbi=temp("temp/{sm}.bam.pbi"),
     conda:
         DEFAULT_ENV
     resources:
         runtime=12 * 60,
         mem_mb=3 * MAX_THREADS * 1024,
-        tmpdir="temp/tmp.{sm}.pbmm2.sorts/",
+        tmpdir="temp/tmp.{wildcards.sm}.pbmm2.sorts/",
     threads: MAX_THREADS
+    params:
+        sort_threads=MAX_THREADS // 4,
+        sort_memory=8,
     shell:
         "mkdir -p {resources.tmpdir} && "
-        " pbmm2 align -j {threads}"
+        " pbmm2 align -j {threads} -J {params.sort_threads}"
         " --preset CCS --sort"
-        " --sort-memory 1G"
+        " --sort-memory {params.sort_memory}G"
         " --log-level DEBUG"
         " --strip"
         " --unmapped"
