@@ -38,7 +38,7 @@ def main(
     o_bam = pysam.AlignmentFile(outfile, "wbu", template=bam, threads=threads)
     for rec in tqdm(bam.fetch(until_eof=True)):
         if rec.read_name in assignments.index:
-            rec.set_tag("HP", assignments.loc[rec.read_name, "haplotype"])
+            rec.set_tag("HP", assignments.loc[rec.query_name, "haplotype"])
         else:
             rec.set_tag("HP", None)
         o_bam.write(rec)
