@@ -10,7 +10,7 @@ from tqdm import tqdm
 import pandas as pd
 
 
-def run(bam, obam, hap1_tag="hap1", hap2_tag="hap2", min_mapq=1):
+def run(bam, obam, hap1_tag, hap2_tag, min_mapq=1):
     read_assignments = []
     for rec in tqdm(bam.fetch(until_eof=True)):
         is_primary = not rec.is_secondary and not rec.is_supplementary
@@ -60,7 +60,11 @@ def main(
     bam = pysam.AlignmentFile(infile, "rb", threads=threads)
     obam = pysam.AlignmentFile(outfile, "wb", template=bam, threads=threads)
     read_assignments = run(
-        bam, obam, min_mapq=min_mapq, hap1_tag=hap1_tag, hap2_tag=hap2_tag
+        bam,
+        obam,
+        hap1_tag,
+        hap2_tag,
+        min_mapq=min_mapq,
     )
 
     pd.DataFrame(read_assignments, columns=["haplotype", "read_name"]).to_csv(
