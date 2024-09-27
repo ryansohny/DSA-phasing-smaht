@@ -15,11 +15,11 @@ properties:
     description: Path to a BAM file containing read-alignments against the reference genome
   h1-tag:
     type: string
-    default: "haplotype1"
+    default: "h1tg"
     description: Haplotype 1 tag that can be found in DSA contig names
   h2-tag:
     type: string
-    default: "haplotype2"
+    default: "h2tg"
     description: Haplotype 2 tag that can be found in DSA contig names
 
 required:
