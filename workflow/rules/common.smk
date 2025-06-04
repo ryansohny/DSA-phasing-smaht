@@ -16,3 +16,11 @@ def get_dsa(wc):
 def get_bam(wc):
     """Get the BAM file for a sample."""
     return MANIFEST[wc.sm]["bam"]
+
+
+def get_final_cram(wc):
+    """Get the final CRAM file for a sample."""
+    if config.get("ont", False):
+        return f"results/{wc.sm}.modkit.dsa.cram"
+    else:
+        return f"results/{wc.sm}.dsa.cram"

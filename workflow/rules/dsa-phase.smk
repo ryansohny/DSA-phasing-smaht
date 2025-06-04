@@ -1,3 +1,4 @@
+# TODO add read-groups 
 rule align:
     input:
         dsa=get_dsa,
@@ -51,7 +52,8 @@ rule modkit:
         cram=rules.haplotag_and_sort.output.cram,
         dsa=get_dsa,
     output:
-        bam="results/{sm}.modkit.dsa.cram",
+        cram="results/{sm}.modkit.dsa.cram",
+        crai="results/{sm}.modkit.dsa.cram.crai",
     conda:
         DEFAULT_ENV
     resources:
@@ -65,13 +67,13 @@ rule modkit:
         " | ft add-nucleosomes -t {threads} {params.ft_nuc}"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         " --output-fmt-option embed_ref=1"
-        " --write-index -o {output.bam}"
+        " --write-index -o {output.cram}"
 
 
 # add read assignments to the input bam files
 rule qc:
     input:
-        cram=rules.haplotag_and_sort.output.cram,
+        cram=get_final_cram,
     output:
         txt="results/{sm}.qc.tbl.gz",
     conda:
