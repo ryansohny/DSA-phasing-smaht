@@ -10,8 +10,13 @@ rule align:
         runtime=12 * 60,
         mem_mb=MAX_THREADS * 1024,
     threads: MAX_THREADS
-    script:
-        "scripts/align.sh"
+    shell:
+        "minimap2"
+        " -t {threads}"
+        " --secondary=no -I 8G --eqx --MD -Y -y"
+        " -ax 'lr:hq'"
+        ' {input.dsa} <(samtools fastq -@ {threads} -T "*" {input.bam})'
+        " | samtools view -u -@ {threads} > {output.bam}"
 
 
 rule haplotag_and_sort:
@@ -35,11 +40,32 @@ rule haplotag_and_sort:
     shell:
         "python {params.script} {input.bam} - {output.assignments}"
         " -t {threads} -m {params.min_mapq}"
-        "--hap1-tag {params.h1_tag} --hap2-tag {params.h2_tag}"
+        " --hap1-tag {params.h1_tag} --hap2-tag {params.h2_tag}"
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         "  --output-fmt-option embed_ref=1"
         "  --write-index -o {output.cram}"
+
+rule modkit:
+    input:
+        cram=rules.haplotag_and_sort.output.cram,
+        dsa=get_dsa,
+    output:
+        bam="results/{sm}.modkit.dsa.cram",
+    conda:
+        DEFAULT_ENV
+    resources:
+        runtime=12 * 60,
+        mem_mb=16 * 1024,
+    threads: 16
+    params:
+        ft_nuc=config.get("ft_nuc_params", ""),
+    shell:
+        "modkit call-mods -t {threads} -p 0.1 {input.cram} -"
+        " | ft add-nucleosomes -t {threads} {params.ft_nuc}"
+        " | samtools view -C -@ {threads} -T {input.dsa}"
+        " --output-fmt-option embed_ref=1"
+        " --write-index -o {output.bam}"
 
 
 # add read assignments to the input bam files
