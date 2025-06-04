@@ -69,18 +69,16 @@ rule modkit:
 
 
 # add read assignments to the input bam files
-rule phase_percentages:
+rule qc:
     input:
         cram=rules.haplotag_and_sort.output.cram,
     output:
-        txt="results/{sm}.phase-percentages.txt",
+        txt="results/{sm}.qc.tbl.gz",
     conda:
         DEFAULT_ENV
     resources:
         runtime=12 * 60,
         mem_mb=16 * 1024,
     threads: 16
-    params:
-        script=workflow.source_path("../scripts/phase-percentages.py"),
     shell:
-        "python {params.script} -t {threads} {input.cram} > {output.txt}"
+        "ft qc -t {threads} {input.cram} {output.txt}"
