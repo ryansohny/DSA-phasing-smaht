@@ -5,36 +5,57 @@
 
 import os
 import sys
+import pprint
 
 from snakemake.utils import validate
+from snakemake.utils import min_version
 
-# configfile: "config.yaml"
+min_version("9.0.0")
+
 validate(config, "config.schema.yaml")
+print("Config loaded:\n{}".format(config), file=sys.stderr)
 
+MANIFEST = {}
+for line in open(config["manifest"]):
+    if line.startswith("#") or line.startswith("dsa"):
+        continue  # skip comments and header
+    tokens = line.strip().split()
+    dsa = tokens[0]
+    bam = tokens[1]
+    h1_tag = tokens[2]
+    h2_tag = tokens[3]
+    if h1_tag == "NA":
+        h1_tag = "h1"
+    if h2_tag == "NA":
+        h2_tag = "h2"
+    sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
+    MANIFEST[sm_id] = {
+        "dsa": dsa,
+        "bam": bam,
+        "h1_tag": h1_tag,
+        "h2_tag": h2_tag,
+    }
 
-REF = os.path.abspath(config["reference"])
-DSA = os.path.abspath(config["DSA"])
-BAM = os.path.abspath(config["bam"])
-VCF = config.get("vcf", [])
-H1_TAG = config["h1-tag"]
-H2_TAG = config["h2-tag"]
+print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
+pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
+
 
 MAX_THREADS = config.get("max_threads", 64)
 DEFAULT_ENV = "../envs/env.yml"
 
-# get the name of the data from the bam
-SM = [os.path.basename(BAM).split(".")[0]]
+SMs = list(MANIFEST.keys())
 
 
+wildcard_constraints:
+    sm="|".join(SMs),
+
+
+include: "rules/common.smk"
 include: "rules/dsa-phase.smk"
 
 
 # build the list of needed outputs
-needed_outputs = expand(rules.cram.output.cram, sm=SM)
-needed_outputs += expand(rules.add_assignments.output.cram, sm=SM)
-needed_outputs += expand(rules.phase_percentages.output.txt, sm=SM)
-if len(VCF) > 0:
-    needed_outputs += expand(rules.haplotagged_vcf.output.vcf, sm=SM)
+needed_outputs = expand(rules.haplotag_and_sort.output.cram, sm=SMs)
 
 
 rule all:

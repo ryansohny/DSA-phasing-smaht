@@ -1,27 +1,9 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 description: Configuration schema for the DSA-phasing pipeline
 properties:
-  reference:
+  manifest:
     type: string
-    description: Path to the reference genome (e.g. GRCh38)
-  DSA:
-    type: string
-    description: Path to the Donor Specific Assembly (DSA) genome
-  vcf:
-    type: string
-    description: Path to a VCF file against the reference genome that will be phased with the DSA read-alignments
-  bam:
-    type: string
-    description: Path to a BAM file containing read-alignments against the reference genome
-  h1-tag:
-    type: string
-    default: "h1tg"
-    description: Haplotype 1 tag that can be found in DSA contig names
-  h2-tag:
-    type: string
-    default: "h2tg"
-    description: Haplotype 2 tag that can be found in DSA contig names
+    description: Path to a table with the manifest of samples to be processed.
 
 required:
-  - reference
-  - DSA
+  - manifest
