@@ -10,6 +10,8 @@ rule align:
     resources:
         runtime=12 * 60,
         mem_mb=MAX_THREADS * 1024,
+    params:
+        sample=bam_header_sm_settings,
     threads: MAX_THREADS
     shell:
         "minimap2"
@@ -17,7 +19,8 @@ rule align:
         " --secondary=no -I 8G --eqx --MD -Y -y"
         " -ax 'lr:hq'"
         ' {input.dsa} <(samtools fastq -@ {threads} -T "*" {input.bam})'
-        " | samtools view -u -@ {threads} > {output.bam}"
+        " | rb add-rg -u {params.sample} -t {threads} {input.bam}"
+        " > {output.bam}"
 
 
 rule haplotag_and_sort:

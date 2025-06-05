@@ -1,1 +1,2 @@
 manifest: config/manifest.tbl
+set-sm: true # change the sample names in the bam header to match the manifest

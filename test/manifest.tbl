@@ -1,2 +1,2 @@
-dsa bam h1_tag h2_tag
-test/test.fa test/test.bam NA NA
+sample sa bam h1_tag h2_tag
+fast_test test/test.fa test/test.bam NA NA

@@ -17,24 +17,27 @@ print("Config loaded:\n{}".format(config), file=sys.stderr)
 
 MANIFEST = {}
 for line in open(config["manifest"]):
-    if line.startswith("#") or line.startswith("dsa"):
+    if line.startswith("#") or line.startswith("sample"):
         continue  # skip comments and header
     tokens = line.strip().split()
-    dsa = tokens[0]
-    bam = tokens[1]
-    h1_tag = tokens[2]
-    h2_tag = tokens[3]
+    sm_id = tokens[0]
+    dsa = tokens[1]
+    bam = tokens[2]
+    h1_tag = tokens[3]
+    h2_tag = tokens[4]
     if h1_tag == "NA":
         h1_tag = "h1"
     if h2_tag == "NA":
         h2_tag = "h2"
-    sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
+    #sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
     MANIFEST[sm_id] = {
         "dsa": dsa,
         "bam": bam,
         "h1_tag": h1_tag,
         "h2_tag": h2_tag,
     }
+    if len(tokens) > 4:
+        MANIFEST[sm_id]["ont"] = tokens[4] == "ont"
 
 print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
 pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)

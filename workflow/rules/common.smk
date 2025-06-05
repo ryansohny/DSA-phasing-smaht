@@ -24,3 +24,9 @@ def get_final_cram(wc):
         return f"results/{wc.sm}.modkit.dsa.cram"
     else:
         return f"results/{wc.sm}.dsa.cram"
+
+def bam_header_sm_settings(wc):
+    if config.get("set-sm", False):
+        return f" --sample {wc.sm} "
+    else:
+        return ""
