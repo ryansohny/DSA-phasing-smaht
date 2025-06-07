@@ -1,7 +1,18 @@
-# TODO add read-groups 
+rule extract_fastq:
+    input:
+        bam=get_bam,
+    output:
+        fastq=pipe("temp/{sm}.fastq"),
+    conda:
+        DEFAULT_ENV
+    threads: 16
+    shell:
+        'samtools fastq -@ {threads} -T "*" {input.bam} > {output.fastq}'
+
 rule align:
     input:
         dsa=get_dsa,
+        fastq=rules.extract_fastq.output.fastq,
         bam=get_bam,
     output:
         bam=pipe("temp/{sm}.bam"),
@@ -18,7 +29,7 @@ rule align:
         " -t {threads}"
         " --secondary=no -I 8G --eqx --MD -Y -y"
         " -ax 'lr:hq'"
-        ' {input.dsa} <(samtools fastq -@ {threads} -T "*" {input.bam})'
+        " {input.dsa} {input.fastq}"
         " | rb add-rg -u {params.sample} -t {threads} {input.bam}"
         " > {output.bam}"
 
