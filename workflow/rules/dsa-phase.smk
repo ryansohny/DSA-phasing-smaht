@@ -5,7 +5,7 @@ rule extract_fastq:
         fastq=pipe("temp/{sm}.fastq"),
     conda:
         DEFAULT_ENV
-    threads: 16
+    threads: 8
     shell:
         'samtools fastq -@ {threads} -T "*" {input.bam} > {output.fastq}'
 
