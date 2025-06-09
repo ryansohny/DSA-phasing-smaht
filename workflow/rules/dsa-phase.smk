@@ -97,4 +97,4 @@ rule qc:
         mem_mb=16 * 1024,
     threads: 16
     shell:
-        "ft qc -t {threads} {input.cram} {output.txt}"
+        "ft qc --acf -t {threads} {input.cram} {output.txt}"
