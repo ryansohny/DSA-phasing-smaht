@@ -23,12 +23,15 @@ rule align:
         mem_mb=MAX_THREADS * 1024,
     params:
         sample=bam_header_sm_settings,
+        mm2_preset=config.get("mm2_preset", "'lr:hq'"),
+        mm2_extra_opts=config.get("mm2_extra_options", ""),
     threads: MAX_THREADS
     shell:
         "minimap2"
         " -t {threads}"
         " --secondary=no -I 8G --eqx --MD -Y -y"
-        " -ax 'lr:hq'"
+        " -ax {params.mm2_preset}"
+        " {params.mm2_extra_opts}"
         " {input.dsa} {input.fastq}"
         " | rb add-rg -u {params.sample} -t {threads} {input.bam}"
         " > {output.bam}"
