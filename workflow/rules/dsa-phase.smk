@@ -74,9 +74,9 @@ rule modkit:
     conda:
         DEFAULT_ENV
     resources:
-        runtime=12 * 60,
+        runtime=24 * 60,
         mem_mb=16 * 1024,
-    threads: 16
+    threads: 8
     params:
         ft_nuc=config.get("ft_nuc_params", ""),
     shell:
