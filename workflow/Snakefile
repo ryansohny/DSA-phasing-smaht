@@ -42,7 +42,7 @@ for line in open(config["manifest"]):
 SHARED_REF = config.get("shared_reference", list())
 
 print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
-pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
+#pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
 
 
 MAX_THREADS = config.get("max_threads", 64)
