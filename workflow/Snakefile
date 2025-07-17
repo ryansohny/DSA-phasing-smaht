@@ -67,7 +67,10 @@ needed_outputs += expand(rules.qc.output.txt, sm=SMs)
 
 # realign to shared reference if provided
 if len(SHARED_REF) > 0:
-    needed_outputs += expand(rules.realign_to_shared_ref.output.cram, sm=SMs)
+    print("Realigning to shared reference: {}".format(SHARED_REF), file=sys.stderr)
+    extra_files = expand(rules.realign_to_shared_ref.output.cram, sm=SMs)
+    print("Extra files from shared reference realignment: {}".format(extra_files), file=sys.stderr)
+    needed_outputs += extra_files
 
 rule all:
     input:
