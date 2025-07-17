@@ -16,6 +16,8 @@ test = { cmd = [
     "$PIXI_PROJECT_ROOT/workflow/Snakefile",
     "--configfile",
     "test/test.yaml",
+    "--config",
+    "shared_reference=test/test.fa",
     "-k",
 ] }
 fmt = "ruff format . && taplo format pixi.toml && snakefmt workflow/"
