@@ -39,7 +39,7 @@ for line in open(config["manifest"]):
     if len(tokens) > 4:
         MANIFEST[sm_id]["ont"] = tokens[4] == "ont"
 
-SHARED_REF = config.get("shared_reference", None)
+SHARED_REF = config.get("shared_reference", list())
 
 print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
 pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
