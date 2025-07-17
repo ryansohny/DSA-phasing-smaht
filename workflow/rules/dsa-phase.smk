@@ -48,10 +48,11 @@ rule haplotag_and_sort:
     conda:
         DEFAULT_ENV
     threads: MAX_THREADS // 4
+    resources:
+        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
     params:
         min_mapq=config.get("min_mapq", 1),
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
-        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
         sort_memory=4,  # GB per thread
         h1_tag=get_h1_tag,
         h2_tag=get_h2_tag,
@@ -101,3 +102,36 @@ rule qc:
     threads: 16
     shell:
         "ft qc --acf -t {threads} {input.cram} {output.txt}"
+
+
+# realign to shared reference if provided
+rule realign_to_shared_ref:
+    input:
+        ref=SHARED_REF,
+        bam=get_final_cram,
+    output:
+        cram="results/{sm}.shared.ref.cram",
+        crai="results/{sm}.shared.ref.cram.crai",
+    conda:
+        DEFAULT_ENV
+    resources:
+        runtime=12 * 60,
+        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
+    params:
+        sort_memory=4,  # GB per thread
+        sample=bam_header_sm_settings,
+        mm2_preset=config.get("mm2_preset", "'lr:hq'"),
+        mm2_extra_opts=config.get("mm2_extra_options", ""),
+    threads: MAX_THREADS
+    shell:
+        "minimap2"
+        " -t {threads}"
+        " --secondary=no -I 8G --eqx --MD -Y -y"
+        " -ax {params.mm2_preset}"
+        " {params.mm2_extra_opts}"
+        ' {input.ref} <(samtools fastq -@ {threads} -T "*" {input.bam})'
+        " | rb add-rg -u {params.sample} -t {threads} {input.bam}"
+        " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
+        " | samtools view -C -@ {threads} -T {input.ref}"
+        "  --output-fmt-option embed_ref=1"
+        "  --write-index -o {output.cram}"

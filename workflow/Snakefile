@@ -39,6 +39,8 @@ for line in open(config["manifest"]):
     if len(tokens) > 4:
         MANIFEST[sm_id]["ont"] = tokens[4] == "ont"
 
+SHARED_REF = config.get("shared_reference", None)
+
 print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
 pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
 
@@ -62,6 +64,10 @@ needed_outputs = expand(rules.haplotag_and_sort.output.cram, sm=SMs)
 if config.get("ont", False):
     needed_outputs += expand(rules.modkit.output.cram, sm=SMs)
 needed_outputs += expand(rules.qc.output.txt, sm=SMs)
+
+# realign to shared reference if provided
+if SHARED_REF:
+    needed_outputs += expand(rules.realign_to_shared_ref.output.cram, sm=SMs)
 
 rule all:
     input:
