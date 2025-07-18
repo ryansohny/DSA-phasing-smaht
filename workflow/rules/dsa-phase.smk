@@ -118,7 +118,7 @@ rule realign_to_shared_ref:
         runtime=12 * 60,
         mem_mb=(MAX_THREADS * 4 + 8) * 1024,
     params:
-        sort_memory=4,  # GB per thread
+        sort_memory=3,  # GB per thread
         sample=bam_header_sm_settings,
         mm2_preset=config.get("mm2_preset", "'lr:hq'"),
         mm2_extra_opts=config.get("mm2_extra_options", ""),
