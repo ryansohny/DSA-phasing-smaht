@@ -51,7 +51,7 @@ rule haplotag_and_sort:
     resources:
         mem_mb=(MAX_THREADS * 4 + 8) * 1024,
     params:
-        min_mapq=config.get("min_mapq", 1),
+        min_mapq=config.get("min_mapq", 0),
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
         sort_memory=4,  # GB per thread
         h1_tag=get_h1_tag,
