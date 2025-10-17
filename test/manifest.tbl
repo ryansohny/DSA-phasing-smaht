@@ -1,2 +1,2 @@
 sample sa bam h1_tag h2_tag
-fast_test test/test.fa test/test.bam m54329U_210323_190418 not_there
+fast_test test/test.fa test/test.bam,test/test.bam m54329U_210323_190418 not_there

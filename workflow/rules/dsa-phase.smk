@@ -1,13 +1,15 @@
+# Process each input file individually
 rule extract_fastq:
     input:
         bam=get_bam,
     output:
-        fastq=pipe("temp/{sm}.fastq"),
+        fastq=pipe("temp/{sm}.{file_idx}.fastq"),
     conda:
         DEFAULT_ENV
     threads: 8
     shell:
         'samtools fastq -@ {threads} -T "*" {input.bam} > {output.fastq}'
+
 
 rule align:
     input:
@@ -15,7 +17,7 @@ rule align:
         fastq=rules.extract_fastq.output.fastq,
         bam=get_bam,
     output:
-        bam=pipe("temp/{sm}.bam"),
+        bam=pipe("temp/{sm}.{file_idx}.bam"),
     conda:
         DEFAULT_ENV
     resources:
@@ -42,9 +44,9 @@ rule haplotag_and_sort:
         dsa=get_dsa,
         bam=rules.align.output.bam,
     output:
-        assignments="results/{sm}.assignments.tsv.gz",
-        cram="results/{sm}.dsa.cram",
-        crai="results/{sm}.dsa.cram.crai",
+        assignments="temp/{sm}.{file_idx}.assignments.tsv.gz",
+        cram=temp("temp/{sm}.{file_idx}.dsa.cram"),
+        crai=temp("temp/{sm}.{file_idx}.dsa.cram.crai"),
     conda:
         DEFAULT_ENV
     threads: MAX_THREADS // 4
@@ -65,13 +67,15 @@ rule haplotag_and_sort:
         "  --output-fmt-option embed_ref=1"
         "  --write-index -o {output.cram}"
 
+
+# For ONT: run modkit on each file individually
 rule modkit:
     input:
         cram=rules.haplotag_and_sort.output.cram,
         dsa=get_dsa,
     output:
-        cram="results/{sm}.modkit.dsa.cram",
-        crai="results/{sm}.modkit.dsa.cram.crai",
+        cram=temp("temp/{sm}.{file_idx}.modkit.dsa.cram"),
+        crai=temp("temp/{sm}.{file_idx}.modkit.dsa.cram.crai"),
     conda:
         DEFAULT_ENV
     resources:
@@ -86,6 +90,28 @@ rule modkit:
         " | samtools view -C -@ {threads} -T {input.dsa}"
         " --output-fmt-option embed_ref=1"
         " --write-index -o {output.cram}"
+
+
+# Merge all files for a sample (after haplotag_and_sort for PacBio, after modkit for ONT)
+rule merge_sample:
+    input:
+        crams=get_crams_to_merge,
+        dsa=get_dsa,
+    output:
+        cram="results/{sm}.dsa.cram",
+        crai="results/{sm}.dsa.cram.crai",
+    conda:
+        DEFAULT_ENV
+    threads: MAX_THREADS // 4
+    resources:
+        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
+    shell:
+        "samtools merge -@ {threads} --write-index"
+        " --reference {input.dsa}"
+        " --output-fmt cram"
+        " --output-fmt-option embed_ref=1"
+        " -o {output.cram}"
+        " {input.crams}"
 
 
 # add read assignments to the input bam files

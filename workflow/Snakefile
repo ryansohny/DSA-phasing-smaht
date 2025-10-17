@@ -29,20 +29,29 @@ for line in open(config["manifest"]):
         h1_tag = "h1"
     if h2_tag == "NA":
         h2_tag = "h2"
-    #sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
-    MANIFEST[sm_id] = {
-        "dsa": dsa,
-        "bam": bam,
-        "h1_tag": h1_tag,
-        "h2_tag": h2_tag,
-    }
+
+    # Support multiple BAM files separated by commas
+    bam_files = [b.strip() for b in bam.split(",")]
+
+    # sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
+    if sm_id not in MANIFEST:
+        MANIFEST[sm_id] = {
+            "dsa": dsa,
+            "bam": bam_files,
+            "h1_tag": h1_tag,
+            "h2_tag": h2_tag,
+        }
+    else:
+        # If sample already exists, append BAM files
+        MANIFEST[sm_id]["bam"].extend(bam_files)
+
     if len(tokens) > 4:
         MANIFEST[sm_id]["ont"] = tokens[4] == "ont"
 
 SHARED_REF = config.get("shared_reference", list())
 
 print("Manifest loaded with {} samples.".format(len(MANIFEST)), file=sys.stderr)
-#pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
+# pprint.pprint(MANIFEST, depth=3, stream=sys.stderr)
 
 
 MAX_THREADS = config.get("max_threads", 64)
@@ -53,6 +62,7 @@ SMs = list(MANIFEST.keys())
 
 wildcard_constraints:
     sm="|".join(SMs),
+    file_idx=r"\d+",
 
 
 include: "rules/common.smk"
@@ -60,17 +70,19 @@ include: "rules/dsa-phase.smk"
 
 
 # build the list of needed outputs
-needed_outputs = expand(rules.haplotag_and_sort.output.cram, sm=SMs)
-if config.get("ont", False):
-    needed_outputs += expand(rules.modkit.output.cram, sm=SMs)
+needed_outputs = expand(rules.merge_sample.output.cram, sm=SMs)
 needed_outputs += expand(rules.qc.output.txt, sm=SMs)
 
 # realign to shared reference if provided
 if len(SHARED_REF) > 0:
     print("Realigning to shared reference: {}".format(SHARED_REF), file=sys.stderr)
     extra_files = expand(rules.realign_to_shared_ref.output.cram, sm=SMs)
-    print("Extra files from shared reference realignment: {}".format(extra_files), file=sys.stderr)
+    print(
+        "Extra files from shared reference realignment: {}".format(extra_files),
+        file=sys.stderr,
+    )
     needed_outputs += extra_files
+
 
 rule all:
     input:
