@@ -45,8 +45,8 @@ for line in open(config["manifest"]):
         # If sample already exists, append BAM files
         MANIFEST[sm_id]["bam"].extend(bam_files)
 
-    if len(tokens) > 4:
-        MANIFEST[sm_id]["ont"] = tokens[4] == "ont"
+    if len(tokens) > 5:
+        MANIFEST[sm_id]["ont"] = tokens[5] == "ont"
 
 SHARED_REF = config.get("shared_reference", list())
 
