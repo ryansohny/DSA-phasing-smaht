@@ -55,6 +55,11 @@ def get_crams_to_merge(wc):
         )
 
 
+def get_crais_to_merge(wc):
+    """Get all CRAI index files for a sample."""
+    return [f"{cram}.crai" for cram in get_crams_to_merge(wc)]
+
+
 def get_final_cram(wc):
     """Get the final CRAM file for a sample (merged output for both PacBio and ONT)."""
     return f"results/{wc.sm}.dsa.cram"

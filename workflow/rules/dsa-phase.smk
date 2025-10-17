@@ -96,6 +96,7 @@ rule modkit:
 rule merge_sample:
     input:
         crams=get_crams_to_merge,
+        crais=get_crais_to_merge,
         dsa=get_dsa,
     output:
         cram="results/{sm}.dsa.cram",
@@ -105,13 +106,21 @@ rule merge_sample:
     threads: MAX_THREADS // 4
     resources:
         mem_mb=(MAX_THREADS * 4 + 8) * 1024,
-    shell:
-        "samtools merge -@ {threads} --write-index"
-        " --reference {input.dsa}"
-        " --output-fmt cram"
-        " --output-fmt-option embed_ref=1"
-        " -o {output.cram}"
-        " {input.crams}"
+    run:
+        # If only one file, just copy it instead of merging
+        if len(input.crams) == 1:
+            shell("cp {input.crams[0]} {output.cram}")
+            shell("cp {input.crais[0]} {output.crai}")
+        else:
+            # Multiple files: merge them
+            shell(
+                "samtools merge -@ {threads} --write-index"
+                " --reference {input.dsa}"
+                " --output-fmt cram"
+                " --output-fmt-option embed_ref=1"
+                " -o {output.cram}"
+                " {input.crams}"
+            )
 
 
 # add read assignments to the input bam files
