@@ -70,3 +70,9 @@ def bam_header_sm_settings(wc):
         return f" --sample {wc.sm} "
     else:
         return ""
+
+
+def read_assignment_result():
+    if config.get("keep_read_assignments", False):
+        return "results/{sm}/{sm}.{file_idx}.assignments.tsv.gz"
+    return temp("temp/{sm}.{file_idx}.assignments.tsv.gz")

@@ -44,7 +44,7 @@ rule haplotag_and_sort:
         dsa=get_dsa,
         bam=rules.align.output.bam,
     output:
-        assignments="temp/{sm}.{file_idx}.assignments.tsv.gz",
+        assignments=read_assignment_result(),
         cram=temp("temp/{sm}.{file_idx}.dsa.cram"),
         crai=temp("temp/{sm}.{file_idx}.dsa.cram.crai"),
     conda:
