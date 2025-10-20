@@ -39,7 +39,7 @@ def main(
     *,
     hap1_tag: str = "haplotype1",
     hap2_tag: str = "haplotype2",
-    min_mapq: int = 0,
+    min_mapq: int = 1,
     threads: int = 8,
     verbose: int = 0,
 ):
@@ -49,7 +49,9 @@ def main(
     :param infile: Input file, stdin by default
     :param outfile: Output file, stdout by default
     :param outfile2: Output fil
-    :param count: Number of times to display the greeting
+    :param hap1_tag: Haplotype 1 contig tag
+    :param hap2_tag: Haplotype 2 contig tag
+    :param min_mapq: Minimum mapping quality to consider
     :param verbose: Set the logging level of the function
     """
     if infile is None or infile == "-":
