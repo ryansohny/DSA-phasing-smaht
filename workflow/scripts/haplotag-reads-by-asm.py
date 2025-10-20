@@ -14,20 +14,30 @@ def run(bam, obam, hap1_tag, hap2_tag, min_mapq):
     read_assignments = []
     for rec in tqdm(bam.fetch(until_eof=True)):
         is_primary = not rec.is_secondary and not rec.is_supplementary
-        if rec.is_unmapped or rec.mapping_quality < min_mapq:
-            rec.set_tag("HP", None)
-        elif hap1_tag in rec.reference_name and hap2_tag in rec.reference_name:
-            rec.set_tag("HP", None)
-        elif hap1_tag in rec.reference_name:
-            rec.set_tag("HP", 1)
-            if is_primary:
-                read_assignments.append((1, rec.query_name))
-        elif hap2_tag in rec.reference_name:
-            rec.set_tag("HP", 2)
-            if is_primary:
-                read_assignments.append((2, rec.query_name))
+        matches_h1 = hap1_tag in rec.reference_name
+        matches_h2 = hap2_tag in rec.reference_name
+        matches_both = matches_h1 and matches_h2
+        
+        tag_value = None
+        if rec.is_unmapped or matches_both: 
+            tag_value = None
         else:
-            rec.set_tag("HP", None)
+            if matches_h1:
+                tag_value = 1
+            elif matches_h2:
+                tag_value = 2
+            else:
+                tag_value = None        
+        # set the oh tag first
+        rec.set_tag("oh", tag_value)
+        # if we have a low mapq reset just the HP tag
+        if rec.mapping_quality < min_mapq:
+            tag_value = None
+        rec.set_tag("HP", tag_value)
+        
+        if is_primary and tag_value is not None:
+            read_assignments.append((tag_value, rec.query_name))
+        
         obam.write(rec)
     return read_assignments
 
