@@ -6,6 +6,5 @@ software-deployment-method:
   - apptainer
   - conda
 printshellcmds: True
-show-failed-logs: True
 cores: 96
 local-cores: 4

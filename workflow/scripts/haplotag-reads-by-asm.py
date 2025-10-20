@@ -13,31 +13,32 @@ import pandas as pd
 def run(bam, obam, hap1_tag, hap2_tag, min_mapq):
     read_assignments = []
     for rec in tqdm(bam.fetch(until_eof=True)):
-        is_primary = not rec.is_secondary and not rec.is_supplementary
-        matches_h1 = hap1_tag in rec.reference_name
-        matches_h2 = hap2_tag in rec.reference_name
-        matches_both = matches_h1 and matches_h2
-        
         tag_value = None
-        if rec.is_unmapped or matches_both: 
+        if rec.is_unmapped:
             tag_value = None
         else:
-            if matches_h1:
+            matches_h1 = hap1_tag in rec.reference_name
+            matches_h2 = hap2_tag in rec.reference_name
+            matches_both = matches_h1 and matches_h2
+            if matches_both:
+                tag_value = None
+            elif matches_h1:
                 tag_value = 1
             elif matches_h2:
                 tag_value = 2
             else:
-                tag_value = None        
+                tag_value = None
         # set the oh tag first
         rec.set_tag("oh", tag_value)
         # if we have a low mapq reset just the HP tag
         if rec.mapping_quality < min_mapq:
             tag_value = None
         rec.set_tag("HP", tag_value)
-        
+
+        is_primary = not rec.is_secondary and not rec.is_supplementary
         if is_primary and tag_value is not None:
             read_assignments.append((tag_value, rec.query_name))
-        
+
         obam.write(rec)
     return read_assignments
 
@@ -59,8 +60,6 @@ def main(
     :param infile: Input file, stdin by default
     :param outfile: Output file, stdout by default
     :param outfile2: Output fil
-    :param hap1_tag: Haplotype 1 contig tag
-    :param hap2_tag: Haplotype 2 contig tag
     :param min_mapq: Minimum mapping quality to consider
     :param verbose: Set the logging level of the function
     """
