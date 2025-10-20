@@ -10,7 +10,7 @@ from tqdm import tqdm
 import pandas as pd
 
 
-def run(bam, obam, hap1_tag, hap2_tag, min_mapq=0):
+def run(bam, obam, hap1_tag, hap2_tag, min_mapq):
     read_assignments = []
     for rec in tqdm(bam.fetch(until_eof=True)):
         is_primary = not rec.is_secondary and not rec.is_supplementary
@@ -64,7 +64,7 @@ def main(
         obam,
         hap1_tag,
         hap2_tag,
-        min_mapq=min_mapq,
+        min_mapq,
     )
 
     pd.DataFrame(read_assignments, columns=["haplotype", "read_name"]).to_csv(
