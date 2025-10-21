@@ -49,9 +49,9 @@ rule haplotag_and_sort:
         crai=temp("temp/{sm}.{file_idx}.dsa.cram.crai"),
     conda:
         DEFAULT_ENV
-    threads: 16
+    threads: 8
     resources:
-        mem_mb=(16 * 8 + 8) * 1024,
+        mem_mb=(8 * 8 + 8) * 1024,
     params:
         min_mapq=config.get("min_mapq", 1),
         script=workflow.source_path("../scripts/haplotag-reads-by-asm.py"),
