@@ -151,6 +151,8 @@ rule qc:
         cram=get_final_cram,
     output:
         txt="results/{sm}.qc.tbl.gz",
+    log:
+        "results/validate/{sm}.log",
     conda:
         DEFAULT_ENV
     resources:
@@ -158,7 +160,10 @@ rule qc:
         mem_mb=16 * 1024,
     threads: 16
     shell:
-        "ft qc --acf -t {threads} {input.cram} {output.txt}"
+        """
+        ft validate {input.cram} &> {log}
+        ft qc --acf -t {threads} {input.cram} {output.txt}
+        """
 
 
 # realign to shared reference if provided
