@@ -74,8 +74,9 @@ rule modkit:
         cram=rules.haplotag_and_sort.output.cram,
         dsa=get_dsa,
     output:
-        cram=temp("temp/{sm}.{file_idx}.modkit.dsa.cram"),
-        crai=temp("temp/{sm}.{file_idx}.modkit.dsa.cram.crai"),
+        aln=temp("temp/{sm}.{file_idx}.modkit.dsa.bam"),
+    log:
+        "results/modkit/{sm}.{file_idx}.modkit.log",
     conda:
         DEFAULT_ENV
     resources:
@@ -85,14 +86,35 @@ rule modkit:
     params:
         ft_nuc=config.get("ft_nuc_params", ""),
     shell:
-        "modkit call-mods -t {threads} -p 0.1 {input.cram} -"
-        " | ft add-nucleosomes -t {threads} {params.ft_nuc}"
-        " | samtools view -C -@ {threads} -T {input.dsa}"
-        " --output-fmt-option embed_ref=1"
-        " --write-index -o {output.cram}"
+        "modkit call-mods --log-filepath {log} -t {threads} -p 0.1 {input.cram} -"
+        " | ft add-nucleosomes -t {threads} {params.ft_nuc} - {output.aln}"
 
 
-# Merge all files for a sample (after haplotag_and_sort for PacBio, after modkit for ONT)
+rule fire:
+    input:
+        cram=get_fire_input,
+        dsa=get_dsa,
+    output:
+        cram=temp("temp/{sm}.{file_idx}.fire.dsa.cram"),
+        crai=temp("temp/{sm}.{file_idx}.fire.dsa.cram.crai"),
+    conda:
+        DEFAULT_ENV
+    threads: 16
+    resources:
+        runtime=12 * 60,
+        mem_mb=16 * 1024,
+    params:
+        use_ont=lambda wc: "--ont" if is_ont(wc) else "",
+    shell:
+        """
+        ft fire -u -t {threads} {params.use_ont} {input.cram} \
+            | samtools view -C -@ {threads} -T {input.dsa} \
+                --output-fmt-option embed_ref=1 \
+                --write-index -o {output.cram}
+        """
+
+
+# Merge all files for a sample (after FIRE)
 rule merge_sample:
     input:
         crams=get_crams_to_merge,
@@ -103,9 +125,9 @@ rule merge_sample:
         crai="results/{sm}.dsa.cram.crai",
     conda:
         DEFAULT_ENV
-    threads: MAX_THREADS // 4
+    threads: 16
     resources:
-        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
+        mem_mb=16 * 1024,
     run:
         # If only one file, just copy it instead of merging
         if len(input.crams) == 1:

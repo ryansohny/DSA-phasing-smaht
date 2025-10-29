@@ -1,3 +1,3 @@
 sample dsa bam h1_tag h2_tag technology
 fast_test test/test.fa test/test.bam,test/test.bam m54329U_210323_190418 not_there pacbio
-fast_test_ont test/test.fa test/test.bam m54329U_210323_190418 not_there ont
+fasta_test_ont test/ont.test.fa test/ont.test.bam,test/ont.test.bam #1# #2# ont

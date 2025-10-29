@@ -1,3 +1,8 @@
+def is_ont(wc):
+    """Check if the sample is ONT sequencing data."""
+    return MANIFEST[wc.sm].get("ont", False) or config.get("ont", False)
+
+
 def get_h1_tag(wc):
     """Get the H1 tag for a sample."""
     h1 = f"'{MANIFEST[wc.sm]["h1_tag"]}'"
@@ -40,19 +45,22 @@ def get_file_indices(sm):
     return list(range(len(MANIFEST[sm]["bam"])))
 
 
-def get_crams_to_merge(wc):
-    """Get all CRAM files for a sample - either haplotagged or modkit based on ONT tag."""
-    is_ont = MANIFEST[wc.sm].get("ont", False) or config.get("ont", False)
-    if is_ont:
-        # ONT: merge after modkit
-        return expand(
-            "temp/{{sm}}.{file_idx}.modkit.dsa.cram", file_idx=get_file_indices(wc.sm)
-        )
+def get_fire_input(wc):
+    """Get the alignment file input for FIRE - either modkit BAM or haplotag_and_sort CRAM."""
+    if is_ont(wc):
+        # ONT: FIRE runs after modkit (BAM output)
+        return f"temp/{wc.sm}.{wc.file_idx}.modkit.dsa.bam"
     else:
-        # PacBio: merge after haplotag_and_sort
-        return expand(
-            "temp/{{sm}}.{file_idx}.dsa.cram", file_idx=get_file_indices(wc.sm)
-        )
+        # PacBio: FIRE runs after haplotag_and_sort (CRAM output)
+        return f"temp/{wc.sm}.{wc.file_idx}.dsa.cram"
+
+
+def get_crams_to_merge(wc):
+    """Get all CRAM files for a sample - after FIRE processing."""
+    # All samples go through FIRE now, so always use FIRE output
+    return expand(
+        "temp/{{sm}}.{file_idx}.fire.dsa.cram", file_idx=get_file_indices(wc.sm)
+    )
 
 
 def get_crais_to_merge(wc):
