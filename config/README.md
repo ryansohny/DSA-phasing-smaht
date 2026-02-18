@@ -51,8 +51,22 @@ This document describes all configuration options available for the DSA-phasing 
 
 - **Type**: Integer
 - **Default**: 1
-- **Description**: Minimum mapping quality threshold for filtering reads during haplotagging and sorting. Reads with mapping quality below this value will be excluded.
+- **Description**: Minimum mapping quality threshold for haplotype assignment. Reads below this threshold still appear in the output but have their `HP` tag cleared (set to unphased). The original assignment is preserved in the `oh` tag for debugging.
 - **Example**: `min_mapq: 20`
+
+### `reset_mapq`
+
+- **Type**: Integer
+- **Default**: disabled
+- **Description**: Reset MAPQ of mapped reads to this value during haplotagging. The original MAPQ is preserved in the `om` tag. Useful because DSA-alignment MAPQ values may not be meaningful for downstream tools that filter on MAPQ. By default, resets after haplotype assignment so `min_mapq` filtering uses the original value (see `reset_mapq_before`).
+- **Example**: `reset_mapq: 60`
+
+### `reset_mapq_before`
+
+- **Type**: Boolean
+- **Default**: false
+- **Description**: When true (and `reset_mapq` is set), reset MAPQ before haplotype assignment. This means `min_mapq` filtering will use the new MAPQ value instead of the original. When false (default), MAPQ is reset after assignment so filtering uses the original alignment MAPQ.
+- **Example**: `reset_mapq_before: true`
 
 ### `ft_nuc_params`
 
@@ -60,6 +74,20 @@ This document describes all configuration options available for the DSA-phasing 
 - **Default**: "" (empty)
 - **Description**: Additional parameters for the `ft add-nucleosomes` command in the modkit rule. Used for nucleosome detection and modification analysis.
 - **Example**: `ft_nuc_params: "--nucleosome-length 60"`
+
+### `shared_reference`
+
+- **Type**: String (file path) or List of file paths
+- **Default**: [] (empty, disabled)
+- **Description**: Path to a shared reference genome. When provided, the workflow will realign the final merged CRAMs to this reference in addition to the DSA-aligned outputs. Useful for comparing samples aligned to different DSAs on a common coordinate system.
+- **Example**: `shared_reference: "/path/to/hg38.fa"`
+
+### `keep_read_assignments`
+
+- **Type**: Boolean
+- **Default**: false
+- **Description**: When true, read-to-haplotype assignment TSV files are saved to `results/{sm}/` instead of being placed in `temp/` and cleaned up. Useful for downstream analysis of phasing results.
+- **Example**: `keep_read_assignments: true`
 
 ## Configuration Validation
 

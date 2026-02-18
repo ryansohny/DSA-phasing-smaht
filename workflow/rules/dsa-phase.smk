@@ -58,10 +58,17 @@ rule haplotag_and_sort:
         sort_memory=8,  # GB per thread
         h1_tag=get_h1_tag,
         h2_tag=get_h2_tag,
+        reset_mapq=lambda wc: (
+            f"--reset-mapq {config['reset_mapq']}" if config.get("reset_mapq") else ""
+        ),
+        reset_mapq_before=(
+            "--reset-mapq-before" if config.get("reset_mapq_before", False) else ""
+        ),
     shell:
         "python {params.script} {input.bam} - {output.assignments}"
         " -t {threads} -m {params.min_mapq}"
         " --hap1-tag {params.h1_tag} --hap2-tag {params.h2_tag}"
+        " {params.reset_mapq} {params.reset_mapq_before}"
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         "  --output-fmt-option embed_ref=1"

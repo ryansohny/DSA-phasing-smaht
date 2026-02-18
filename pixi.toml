@@ -1,24 +1,24 @@
 [workspace]
 authors = ["Mitchell R. Vollger <mrvollger@gmail.com>"]
 channels = ["conda-forge", "bioconda"]
-description = "Add a short description here"
+description = "Snakemake workflow for phasing long reads using Donor-Specific Assemblies"
 name = "DSA-phasing"
 platforms = ["linux-64", "osx-64"]
 version = "0.1.2"
 
 [tasks]
 test = { cmd = [
-    "cd",
-    "$INIT_CWD",
-    "&&",
-    "snakemake",
-    "-s",
-    "$PIXI_PROJECT_ROOT/workflow/Snakefile",
-    "--configfile",
-    "test/test.yaml",
-    "--config",
-    "shared_reference=test/test.fa",
-    "-k",
+  "cd",
+  "$INIT_CWD",
+  "&&",
+  "snakemake",
+  "-s",
+  "$PIXI_PROJECT_ROOT/workflow/Snakefile",
+  "--configfile",
+  "test/test.yaml",
+  "--config",
+  "shared_reference=test/test.fa",
+  "-k",
 ] }
 fmt = "ruff format . && taplo format pixi.toml && snakefmt workflow/"
 snakemake = { cmd = "cd $INIT_CWD && snakemake -s $PIXI_PROJECT_ROOT/workflow/Snakefile" }
