@@ -1,20 +1,27 @@
 def is_ont(wc):
-    """Check if the sample is ONT sequencing data."""
-    return MANIFEST[wc.sm].get("ont", False) or config.get("ont", False)
+    """True iff the sample's platform is ONT."""
+    return MANIFEST[wc.sm]["platform"] == "ont"
+
+
+def is_illumina(wc):
+    """True iff the sample's platform is Illumina."""
+    return MANIFEST[wc.sm]["platform"] == "illumina"
+
 
 def is_fiberseq(wc):
-    """Check if the sample is Fiber-seq data."""
-    return MANIFEST[wc.sm].get("fiber-seq", False) or config.get("fiber-seq", False)
+    """True iff the sample is Fiber-seq (Hia5-treated)."""
+    return MANIFEST[wc.sm]["fiber-seq"]
+
 
 def get_h1_tag(wc):
     """Get the H1 tag for a sample."""
-    h1 = f"'{MANIFEST[wc.sm]["h1_tag"]}'"
+    h1 = f"'{MANIFEST[wc.sm]['h1_tag']}'"
     return h1
 
 
 def get_h2_tag(wc):
     """Get the H2 tag for a sample."""
-    h2 = f"'{MANIFEST[wc.sm]["h2_tag"]}'"
+    h2 = f"'{MANIFEST[wc.sm]['h2_tag']}'"
     return h2
 
 
@@ -48,6 +55,13 @@ def get_file_indices(sm):
     return list(range(len(MANIFEST[sm]["bam"])))
 
 
+def get_pre_haplotag_input(wc):
+    """BAM source for haplotag_and_sort: minimap2 BAM (long-read) or bwa BAM (Illumina)."""
+    if is_illumina(wc):
+        return f"temp/{wc.sm}.{wc.file_idx}.illumina.bam"
+    return f"temp/{wc.sm}.{wc.file_idx}.bam"
+
+
 def get_fire_input(wc):
     """Get the alignment file input for FIRE - either modkit BAM or haplotag_and_sort CRAM."""
     if is_ont(wc):
@@ -59,11 +73,12 @@ def get_fire_input(wc):
 
 
 def get_crams_to_merge(wc):
-    """Get all CRAM files for a sample - after FIRE processing."""
-    # All samples go through FIRE now, so always use FIRE output
-    return expand(
-        "temp/{{sm}}.{file_idx}.fire.dsa.cram", file_idx=get_file_indices(wc.sm)
-    )
+    """Pick the per-file CRAM source for merge_sample based on Fiber-seq status."""
+    if is_fiberseq(wc):
+        template = "temp/{{sm}}.{file_idx}.fire.dsa.cram"
+    else:
+        template = "temp/{{sm}}.{file_idx}.dsa.cram"
+    return expand(template, file_idx=get_file_indices(wc.sm))
 
 
 def get_crais_to_merge(wc):
