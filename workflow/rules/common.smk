@@ -2,6 +2,9 @@ def is_ont(wc):
     """Check if the sample is ONT sequencing data."""
     return MANIFEST[wc.sm].get("ont", False) or config.get("ont", False)
 
+def is_fiberseq(wc):
+    """Check if the sample is Fiber-seq data."""
+    return MANIFEST[wc.sm].get("fiber-seq", False) or config.get("fiber-seq", False)
 
 def get_h1_tag(wc):
     """Get the H1 tag for a sample."""

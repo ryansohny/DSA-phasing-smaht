@@ -72,6 +72,8 @@ rule haplotag_and_sort:
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         "  --output-fmt-option embed_ref=1"
+        "  --output-fmt-option store_md=1"
+        "  --output-fmt-option store_nm=1"
         "  --write-index -o {output.cram}"
 
 
@@ -117,6 +119,8 @@ rule fire:
         ft fire -u -t {threads} {params.use_ont} {input.cram} \
             | samtools view -C -@ {threads} -T {input.dsa} \
                 --output-fmt-option embed_ref=1 \
+                --output-fmt-option store_md=1 \
+                --output-fmt-option store_nm=1 \
                 --write-index -o {output.cram}
         """
 
@@ -147,6 +151,8 @@ rule merge_sample:
                 " --reference {input.dsa}"
                 " --output-fmt cram"
                 " --output-fmt-option embed_ref=1"
+                " --output-fmt-option store_md=1"
+                " --output-fmt-option store_nm=1"
                 " -o {output.cram}"
                 " {input.crams}"
             )
@@ -203,4 +209,6 @@ rule realign_to_shared_ref:
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
         " | samtools view -C -@ {threads} -T {input.ref}"
         "  --output-fmt-option embed_ref=1"
+        "  --output-fmt-option store_md=1"
+        "  --output-fmt-option store_nm=1"
         "  --write-index -o {output.cram}"
