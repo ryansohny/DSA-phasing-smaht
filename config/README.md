@@ -19,12 +19,9 @@ This document describes all configuration options available for the DSA-phasing 
 - **Description**: Maximum number of threads for parallel processing operations throughout the workflow.
 - **Example**: `max_threads: 32`
 
-### `ont`
+### Platform and Fiber-seq
 
-- **Type**: Boolean
-- **Default**: false
-- **Description**: Enable Oxford Nanopore Technologies (ONT) specific processing. When true, affects output requirements and final CRAM file selection to optimize for ONT data characteristics.
-- **Example**: `ont: true`
+These are now expressed **per-sample in the manifest**, not in `config.yaml`. The manifest's `platform` column accepts `pacbio`, `ont`, or `illumina`; the `fiber-seq` column accepts `true` or `false`. See the manifest description in the top-level README.
 
 ### `set-sm`
 
@@ -46,6 +43,20 @@ This document describes all configuration options available for the DSA-phasing 
 - **Default**: "" (empty)
 - **Description**: Additional command-line options to pass to minimap2 during alignment. Allows fine-tuning of alignment parameters beyond the preset.
 - **Example**: `mm2_extra_options: "-k19 -w10"`
+
+### `bwa_extra_options`
+
+- **Type**: String
+- **Default**: "" (empty)
+- **Description**: Additional command-line options to pass to `bwa mem` during Illumina alignment. The tuned `-k`/`-w`/`-d`/`-r`/`-c`/`-A`/`-B`/`-O`/`-E`/`-L`/`-U`/`-Y`/`-K` flags are baked into the rule; this knob is for additional overrides.
+- **Example**: `bwa_extra_options: "-T 30"`
+
+### `tmpdir`
+
+- **Type**: String
+- **Default**: `/tmp`
+- **Description**: Temp directory used by `samtools collate` (Illumina branch) for spilling intermediate name-sorted chunks. Set to a fast local disk on the cluster if `/tmp` is small or remote.
+- **Example**: `tmpdir: "/scratch/$USER/dsa-tmp"`
 
 ### `min_mapq`
 

@@ -47,19 +47,21 @@ manifest: "path/to/manifest.tbl"
 2. Create a manifest file (tab-separated):
 
 ```
-sample	dsa	bam	h1_tag	h2_tag	technology
-sample1	/path/to/sample1.dsa.fa	/path/to/sample1.bam	hap1	hap2	pacbio
-sample2	/path/to/sample2.dsa.fa	/path/to/s2_a.bam,/path/to/s2_b.bam	h1	h2	ont
+sample	dsa	bam	h1_tag	h2_tag	platform	fiber-seq
+sample1	/path/to/sample1.dsa.fa	/path/to/sample1.bam	hap1	hap2	pacbio	true
+sample2	/path/to/sample2.dsa.fa	/path/to/s2_a.bam,/path/to/s2_b.bam	h1	h2	ont	true
+sample3	/path/to/sample3.dsa.fa	/path/to/sample3.bam	hap1	hap2	illumina	false
 ```
 
 | Column | Description |
 |---|---|
 | `sample` | Unique sample identifier |
 | `dsa` | Path to the donor-specific assembly FASTA |
-| `bam` | Input BAM path(s), comma-separated for multiple files |
+| `bam` | Input BAM/CRAM path(s), comma-separated for multiple files |
 | `h1_tag` | Substring in DSA contig names identifying haplotype 1 (`NA` defaults to `h1`) |
 | `h2_tag` | Substring in DSA contig names identifying haplotype 2 (`NA` defaults to `h2`) |
-| `technology` | `pacbio` or `ont` (optional; can also set globally in config) |
+| `platform` | One of `pacbio`, `ont`, `illumina` — drives the aligner choice |
+| `fiber-seq` | `true` or `false` — drives the modkit/FIRE branch. `illumina + fiber-seq=true` is rejected. |
 
 3. Run:
 
@@ -76,18 +78,23 @@ pixi run snakemake --configfile config/config.yaml --profile workflow/profiles/d
 ## Workflow overview
 
 ```
-BAM(s) per sample
+BAM/CRAM(s) per sample
   |
-  +- extract_fastq -> align (minimap2 -> DSA) -> haplotag_and_sort (HP/oh tags)
-  |                                                     |
-  |                                    +----------------+----------------+
-  |                                    | ONT                     PacBio  |
-  |                                modkit -> fire                  fire  |
-  |                                    +----------------+----------------+
-  |                                                     |
-  +-----------------------------------> merge_sample -> qc
-                                                |
-                                     (optional) +-> realign_to_shared_ref
+  +-- long-read --> extract_fastq -> align (mm2 -> DSA) -+
+  +-- illumina  --------------------> align_illumina ---+
+                                                        |
+                                              haplotag_and_sort
+                                                        |
+                              +-- fiber-seq -> (modkit if ONT) -> fire -+
+                              +-- non-fiber-seq -----------------------+
+                                                        |
+                                                  merge_sample
+                                                        |
+                              +-- fiber-seq -> qc_fiberseq (ft validate + ft qc)
+                              +-- long-read non-fs -> qc_longread_nofs (samtools stats)
+                              +-- illumina -> qc_illumina (stats + flagstat)
+                                                        |
+                                (optional) realign_to_shared_ref (mm2 | bwa)
 ```
 
 ## Outputs
