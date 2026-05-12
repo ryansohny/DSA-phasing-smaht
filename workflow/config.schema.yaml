@@ -1,9 +1,53 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 description: Configuration schema for the DSA-phasing pipeline
+type: object
+additionalProperties: false
 properties:
   manifest:
     type: string
-    description: Path to a table with the manifest of samples to be processed.
-
+    description: Path to the sample manifest table.
+  max_threads:
+    type: integer
+    minimum: 1
+    description: Upper bound on threads for parallel rules.
+  set-sm:
+    type: boolean
+    description: Whether to rewrite SM tags in BAM headers to match the manifest.
+  mm2_preset:
+    type: string
+    description: minimap2 -ax preset (long-read align).
+  mm2_extra_options:
+    type: string
+    description: Extra command-line options for minimap2.
+  bwa_extra_options:
+    type: string
+    description: Extra command-line options for bwa-mem (Illumina branch).
+  min_mapq:
+    type: integer
+    minimum: 0
+    description: MAPQ floor for haplotype assignment.
+  reset_mapq:
+    type: integer
+    minimum: 0
+    description: Overwrite MAPQ with this value; original preserved in `om` tag.
+  reset_mapq_before:
+    type: boolean
+    description: When true, reset MAPQ before haplotype assignment.
+  ft_nuc_params:
+    type: string
+    description: Extra parameters for `ft add-nucleosomes` (modkit rule).
+  shared_reference:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+    description: Optional shared reference for cross-sample realignment.
+  keep_read_assignments:
+    type: boolean
+    description: When true, read-haplotype assignment TSVs are kept in results/.
+  tmpdir:
+    type: string
+    description: Temp directory for samtools collate spills (Illumina branch).
 required:
   - manifest
