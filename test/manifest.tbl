@@ -1,3 +1,6 @@
-sample dsa bam h1_tag h2_tag technology
-fast_test test/test.fa test/test.bam,test/test.bam m54329U_210323_190418 not_there pacbio
-fasta_test_ont test/ont.test.fa test/ont.test.bam,test/ont.test.bam #1# #2# ont
+sample	dsa	bam	h1_tag	h2_tag	platform	fiber-seq
+fast_test	test/test.fa	test/test.bam,test/test.bam	m54329U_210323_190418	not_there	pacbio	true
+pb_nofs_test	test/test.fa	test/test.bam	m54329U_210323_190418	not_there	pacbio	false
+fasta_test_ont	test/ont.test.fa	test/ont.test.bam,test/ont.test.bam	#1#	#2#	ont	true
+ont_nofs_test	test/ont.test.fa	test/ont.test.bam	#1#	#2#	ont	false
+illumina_test	test/test.fa	test/test.bam	m54329U_210323_190418	not_there	illumina	false
