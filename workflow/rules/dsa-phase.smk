@@ -39,6 +39,41 @@ rule align:
         " > {output.bam}"
 
 
+rule align_illumina:
+    input:
+        cram=get_bam,
+        dsa=get_dsa,
+    output:
+        bam=pipe("temp/{sm}.{file_idx}.illumina.bam"),
+    conda:
+        DEFAULT_ENV
+    threads: MAX_THREADS
+    resources:
+        runtime=24 * 60,
+        mem_mb=MAX_THREADS * 1024,
+        tmpdir=config.get("tmpdir", "/tmp"),
+    params:
+        bwa_extra=config.get("bwa_extra_options", ""),
+        rg=lambda wc: (
+            f"@RG\\tID:{wc.sm}.{wc.file_idx}"
+            f"\\tSM:{wc.sm}\\tLB:{wc.sm}\\tPL:ILLUMINA"
+        ),
+    shell:
+        r"""
+        samtools collate -u -O --threads {threads} {input.cram} \
+          | samtools fastq -1 >(bwa mem -t {threads} \
+                                   -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
+                                   -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
+                                   -Y -K 100000000 \
+                                   -R "{params.rg}" \
+                                   {params.bwa_extra} \
+                                   {input.dsa} - /dev/fd/3 \
+                                 | samblaster --acceptDupMarks --addMateTags \
+                                 > {output.bam}) \
+                          -2 /dev/fd/3 -0 /dev/null -s /dev/null -n 3>&1 >/dev/null
+        """
+
+
 rule haplotag_and_sort:
     input:
         dsa=get_dsa,
@@ -212,3 +247,4 @@ rule realign_to_shared_ref:
         "  --output-fmt-option store_md=1"
         "  --output-fmt-option store_nm=1"
         "  --write-index -o {output.cram}"
+
