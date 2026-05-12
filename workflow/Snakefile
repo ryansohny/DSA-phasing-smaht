@@ -111,19 +111,24 @@ include: "rules/common.smk"
 include: "rules/dsa-phase.smk"
 
 
-# build the list of needed outputs
-needed_outputs = expand(rules.merge_sample.output.cram, sm=SMs)
-needed_outputs += expand(rules.qc.output.txt, sm=SMs)
+# Build the list of needed outputs by dispatching on each sample's platform/fiber-seq.
+needed_outputs = []
+for sm in SMs:
+    needed_outputs.append(f"results/{sm}.dsa.cram")
+    if MANIFEST[sm]["fiber-seq"]:
+        needed_outputs.append(f"results/{sm}.qc.tbl.gz")
+    elif MANIFEST[sm]["platform"] == "illumina":
+        needed_outputs.append(f"results/{sm}.samtools.stats.txt")
+        needed_outputs.append(f"results/{sm}.flagstat.txt")
+    else:
+        # long-read non-Fiber-seq
+        needed_outputs.append(f"results/{sm}.samtools.stats.txt")
 
-# realign to shared reference if provided
+# Realign to shared reference if provided.
 if len(SHARED_REF) > 0:
-    print("Realigning to shared reference: {}".format(SHARED_REF), file=sys.stderr)
-    extra_files = expand(rules.realign_to_shared_ref.output.cram, sm=SMs)
-    print(
-        "Extra files from shared reference realignment: {}".format(extra_files),
-        file=sys.stderr,
-    )
-    needed_outputs += extra_files
+    print(f"Realigning to shared reference: {SHARED_REF}", file=sys.stderr)
+    for sm in SMs:
+        needed_outputs.append(f"results/{sm}.shared.ref.cram")
 
 
 rule all:
