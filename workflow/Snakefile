@@ -16,37 +16,79 @@ validate(config, "config.schema.yaml")
 print("Config loaded:\n{}".format(config), file=sys.stderr)
 
 MANIFEST = {}
-for line in open(config["manifest"]):
-    if line.startswith("#") or line.startswith("sample"):
-        continue  # skip comments and header
-    tokens = line.strip().split()
-    sm_id = tokens[0]
-    dsa = tokens[1]
-    bam = tokens[2]
-    h1_tag = tokens[3]
-    h2_tag = tokens[4]
-    if h1_tag == "NA":
-        h1_tag = "h1"
-    if h2_tag == "NA":
-        h2_tag = "h2"
+VALID_PLATFORMS = {"pacbio", "ont", "illumina"}
 
-    # Support multiple BAM files separated by commas
-    bam_files = [b.strip() for b in bam.split(",")]
+with open(config["manifest"]) as fh:
+    header = None
+    for raw_line in fh:
+        line = raw_line.rstrip("\n")
+        if not line or line.startswith("#"):
+            continue
+        tokens = line.split("\t")
+        if header is None:
+            header = [c.strip() for c in tokens]
+            required = {"sample", "dsa", "bam", "h1_tag", "h2_tag", "platform", "fiber-seq"}
+            missing = required - set(header)
+            if missing:
+                raise ValueError(
+                    f"Manifest {config['manifest']} missing required columns: {sorted(missing)}"
+                )
+            continue
+        if len(tokens) != len(header):
+            raise ValueError(
+                f"Manifest row has {len(tokens)} fields, expected {len(header)}: {line!r}"
+            )
+        row = dict(zip(header, [t.strip() for t in tokens]))
 
-    # sm_id = ".".join(os.path.basename(bam).split(".")[:-1])
-    if sm_id not in MANIFEST:
-        MANIFEST[sm_id] = {
-            "dsa": dsa,
-            "bam": bam_files,
-            "h1_tag": h1_tag,
-            "h2_tag": h2_tag,
-        }
-    else:
-        # If sample already exists, append BAM files
-        MANIFEST[sm_id]["bam"].extend(bam_files)
+        sm_id = row["sample"]
+        plat = row["platform"].lower()
+        if plat not in VALID_PLATFORMS:
+            raise ValueError(
+                f"Sample {sm_id}: unknown platform {plat!r}; "
+                f"must be one of {sorted(VALID_PLATFORMS)}"
+            )
 
-    if len(tokens) > 5:
-        MANIFEST[sm_id]["ont"] = tokens[5] == "ont"
+        fs_raw = row["fiber-seq"].lower()
+        if fs_raw not in {"true", "false"}:
+            raise ValueError(
+                f"Sample {sm_id}: fiber-seq must be 'true' or 'false', got {fs_raw!r}"
+            )
+        fiber_seq = fs_raw == "true"
+
+        if plat == "illumina" and fiber_seq:
+            raise ValueError(
+                f"Sample {sm_id}: illumina + fiber-seq=true is not supported"
+            )
+
+        h1_tag = row["h1_tag"] if row["h1_tag"] != "NA" else "h1"
+        h2_tag = row["h2_tag"] if row["h2_tag"] != "NA" else "h2"
+        bam_files = [b.strip() for b in row["bam"].split(",")]
+
+        if sm_id not in MANIFEST:
+            MANIFEST[sm_id] = {
+                "dsa": row["dsa"],
+                "bam": bam_files,
+                "h1_tag": h1_tag,
+                "h2_tag": h2_tag,
+                "platform": plat,
+                "fiber-seq": fiber_seq,
+            }
+        else:
+            # Same sample on multiple rows: extend BAM list, require consistent metadata.
+            existing = MANIFEST[sm_id]
+            for key, new_val in (
+                ("dsa", row["dsa"]),
+                ("h1_tag", h1_tag),
+                ("h2_tag", h2_tag),
+                ("platform", plat),
+                ("fiber-seq", fiber_seq),
+            ):
+                if existing[key] != new_val:
+                    raise ValueError(
+                        f"Sample {sm_id}: conflicting {key!r} across rows "
+                        f"({existing[key]!r} vs {new_val!r})"
+                    )
+            existing["bam"].extend(bam_files)
 
 SHARED_REF = config.get("shared_reference", list())
 
