@@ -61,16 +61,16 @@ rule align_illumina:
     shell:
         r"""
         samtools collate -u -O --threads {threads} {input.cram} \
-          | samtools fastq -1 >(bwa mem -t {threads} \
-                                   -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
-                                   -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
-                                   -Y -K 100000000 \
-                                   -R "{params.rg}" \
-                                   {params.bwa_extra} \
-                                   {input.dsa} - /dev/fd/3 \
-                                 | samblaster --acceptDupMarks --addMateTags \
-                                 > {output.bam}) \
-                          -2 /dev/fd/3 -0 /dev/null -s /dev/null -n 3>&1 >/dev/null
+          | samtools fastq -n - \
+          | bwa mem -p -t {threads} \
+                -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
+                -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
+                -Y -K 100000000 \
+                -R "{params.rg}" \
+                {params.bwa_extra} \
+                {input.dsa} - \
+          | samblaster --acceptDupMarks --addMateTags \
+          > {output.bam}
         """
 
 
@@ -318,19 +318,19 @@ rule realign_to_shared_ref_illumina:
     shell:
         r"""
         samtools collate -u -O --threads {threads} {input.bam} \
-          | samtools fastq -1 >(bwa mem -t {threads} \
-                                   -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
-                                   -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
-                                   -Y -K 100000000 \
-                                   -R "{params.rg}" \
-                                   {params.bwa_extra} \
-                                   {input.ref} - /dev/fd/3 \
-                                 | samblaster --acceptDupMarks --addMateTags \
-                                 | samtools sort -u -@ {threads} -m {params.sort_memory}G \
-                                 | samtools view -C -@ {threads} -T {input.ref} \
-                                     --output-fmt-option embed_ref=1 \
-                                     --output-fmt-option store_md=1 \
-                                     --output-fmt-option store_nm=1 \
-                                     --write-index -o {output.cram}) \
-                          -2 /dev/fd/3 -0 /dev/null -s /dev/null -n 3>&1 >/dev/null
+          | samtools fastq -n - \
+          | bwa mem -p -t {threads} \
+                -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
+                -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
+                -Y -K 100000000 \
+                -R "{params.rg}" \
+                {params.bwa_extra} \
+                {input.ref} - \
+          | samblaster --acceptDupMarks --addMateTags \
+          | samtools sort -u -@ {threads} -m {params.sort_memory}G \
+          | samtools view -C -@ {threads} -T {input.ref} \
+              --output-fmt-option embed_ref=1 \
+              --output-fmt-option store_md=1 \
+              --output-fmt-option store_nm=1 \
+              --write-index -o {output.cram}
         """
