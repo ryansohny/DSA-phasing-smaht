@@ -264,6 +264,8 @@ rule realign_to_shared_ref:
     output:
         cram="results/{sm}.shared.ref.cram",
         crai="results/{sm}.shared.ref.cram.crai",
+    wildcard_constraints:
+        sm="|".join([s for s in SMs if MANIFEST[s]["platform"] != "illumina"]) or r"(?!.*)",
     conda:
         DEFAULT_ENV
     resources:
@@ -290,3 +292,45 @@ rule realign_to_shared_ref:
         "  --output-fmt-option store_nm=1"
         "  --write-index -o {output.cram}"
 
+
+rule realign_to_shared_ref_illumina:
+    input:
+        ref=SHARED_REF,
+        bam=get_final_cram,
+    output:
+        cram="results/{sm}.shared.ref.cram",
+        crai="results/{sm}.shared.ref.cram.crai",
+    wildcard_constraints:
+        sm="|".join([s for s in SMs if MANIFEST[s]["platform"] == "illumina"]) or r"(?!.*)",
+    conda:
+        DEFAULT_ENV
+    threads: MAX_THREADS
+    resources:
+        runtime=24 * 60,
+        mem_mb=(MAX_THREADS * 4 + 8) * 1024,
+        tmpdir=config.get("tmpdir", "/tmp"),
+    params:
+        sort_memory=3,
+        bwa_extra=config.get("bwa_extra_options", ""),
+        rg=lambda wc: (
+            f"@RG\\tID:{wc.sm}\\tSM:{wc.sm}\\tLB:{wc.sm}\\tPL:ILLUMINA"
+        ),
+    shell:
+        r"""
+        samtools collate -u -O --threads {threads} {input.bam} \
+          | samtools fastq -1 >(bwa mem -t {threads} \
+                                   -k 20 -w 105 -d 105 -r 1.3 -c 12000 \
+                                   -A 1 -B 4 -O 6 -E 1 -L 6 -U 18 \
+                                   -Y -K 100000000 \
+                                   -R "{params.rg}" \
+                                   {params.bwa_extra} \
+                                   {input.ref} - /dev/fd/3 \
+                                 | samblaster --acceptDupMarks --addMateTags \
+                                 | samtools sort -u -@ {threads} -m {params.sort_memory}G \
+                                 | samtools view -C -@ {threads} -T {input.ref} \
+                                     --output-fmt-option embed_ref=1 \
+                                     --output-fmt-option store_md=1 \
+                                     --output-fmt-option store_nm=1 \
+                                     --write-index -o {output.cram}) \
+                          -2 /dev/fd/3 -0 /dev/null -s /dev/null -n 3>&1 >/dev/null
+        """
