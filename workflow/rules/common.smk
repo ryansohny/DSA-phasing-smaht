@@ -102,3 +102,19 @@ def read_assignment_result():
     if config.get("keep_read_assignments", False):
         return "results/{sm}/{sm}.{file_idx}.assignments.tsv.gz"
     return temp("temp/{sm}.{file_idx}.assignments.tsv.gz")
+
+
+def samples_by(predicate):
+    """Return a regex alternation of sample IDs for which predicate(sm) is True."""
+    matching = [sm for sm in SMs if predicate(sm)]
+    if not matching:
+        # Use a regex that matches nothing so the rule never fires.
+        return r"(?!.*)"
+    return "|".join(matching)
+
+
+FIBERSEQ_SMS = samples_by(lambda sm: MANIFEST[sm]["fiber-seq"])
+LONGREAD_NOFS_SMS = samples_by(
+    lambda sm: not MANIFEST[sm]["fiber-seq"] and MANIFEST[sm]["platform"] != "illumina"
+)
+ILLUMINA_SMS = samples_by(lambda sm: MANIFEST[sm]["platform"] == "illumina")
