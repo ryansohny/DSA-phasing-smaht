@@ -77,7 +77,7 @@ rule align_illumina:
 rule haplotag_and_sort:
     input:
         dsa=get_dsa,
-        bam=rules.align.output.bam,
+        bam=get_pre_haplotag_input,
     output:
         assignments=read_assignment_result(),
         cram=temp("temp/{sm}.{file_idx}.dsa.cram"),
