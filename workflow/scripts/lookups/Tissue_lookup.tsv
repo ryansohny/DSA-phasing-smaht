@@ -1,0 +1,42 @@
+Code	Tissue	Preservation	Tissue_alias
+3A	Blood	Snap Frozen	blood
+3AA	Ovary, Right	Snap Frozen	ovaryright
+3AB	Ovary, Right	Fixed	ovaryright
+3AC	Dermal Fibroblast	Cultured Cells	fibroblast
+3AD	Skin, Calf	Snap Frozen	skincalf
+3AE	Skin, Calf	Fixed	skincalf
+3AF	Skin, Abdomen	Snap Frozen	skinab
+3AG	Skin, Abdomen	Fixed	skinab
+3AH	Muscle	Snap Frozen	muscle
+3AI	Muscle	Fixed	muscle
+3AJ	Brain	Fresh	brain
+3AK	Frontal Lobe, Brain, Left	Snap Frozen	frlobe
+3AL	Temporal Lobe, Brain, Left	Snap Frozen	templobe
+3AM	Cerebellum, Brain, Left	Snap Frozen	cerebel
+3AN	Hippocampus, Brain, Left	Snap Frozen	hippoleft
+3AO	Hippocampus, Brain, Right	Snap Frozen	hipporight
+3B	Buccal Swab	Fresh	bucswab
+3C	Esophagus	Snap Frozen	esoph
+3D	Esophagus	Fixed	esoph
+3E	Colon, Ascending	Snap Frozen	colonasc
+3F	Colon, Ascending	Fixed	colonasc
+3G	Colon, Descending	Snap Frozen	colondesc
+3H	Colon, Descending	Fixed	colondesc
+3I	Liver	Snap Frozen	liver
+3J	Liver	Fixed	liver
+3K	Adrenal Gland Left	Snap Frozen	adrenleft
+3L	Adrenal Gland Left	Fixed	adrenleft
+3M	Adrenal Gland Right	Snap Frozen	adrenright
+3N	Adrenal Gland Right	Fixed	adrenright
+3O	Aorta, Abdominal	Snap Frozen 	aortaab
+3P	Aorta, Abdominal	Fixed	aortaab
+3Q	Lung	Snap Frozen	lung
+3R	Lung	Fixed	lung
+3S	Heart, LV	Snap Frozen	heartlv
+3T	Heart, LV	Fixed	heartlv
+3U	Testis, Left	Snap Frozen	testisleft
+3V	Testis, Left	Fixed	testisleft
+3W	Testis, Right	Snap Frozen	testisright
+3X	Testis, Right	Fixed	testisright
+3Y	Ovary, Left	Snap Frozen	ovaryleft
+3Z	Ovary, Left	Fixed	ovaryleft

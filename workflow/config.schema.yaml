@@ -49,5 +49,11 @@ properties:
   tmpdir:
     type: string
     description: Temp directory for samtools collate spills (Illumina branch).
+  cram_reference:
+    type: string
+    description: >-
+      Reference FASTA the input CRAMs were compressed against, used by
+      extract_fastq to decode CRAM inputs. Required when inputs are CRAM whose
+      embedded reference path is unavailable.
 required:
   - manifest

@@ -30,6 +30,18 @@ def get_dsa(wc):
     return MANIFEST[wc.sm]["dsa"]
 
 
+def get_mm2_preset(wc):
+    """minimap2 -ax preset for the initial DSA alignment, chosen by platform.
+
+    PacBio uses 'lr:hqae', ONT uses 'lr:hq'. An explicit `mm2_preset` in the
+    config overrides the per-platform default for every sample. (Shared-reference
+    realignment is a separate process and always uses 'lr:hq'.)
+    """
+    if config.get("mm2_preset"):
+        return config["mm2_preset"]
+    return {"pacbio": "'lr:hqae'", "ont": "'lr:hq'"}[MANIFEST[wc.sm]["platform"]]
+
+
 def get_bam(wc):
     """Get the BAM file(s) for a sample."""
     bam_files = MANIFEST[wc.sm]["bam"]

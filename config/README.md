@@ -33,8 +33,8 @@ These are now expressed **per-sample in the manifest**, not in `config.yaml`. Th
 ### `mm2_preset`
 
 - **Type**: String
-- **Default**: "lr:hq"
-- **Description**: Minimap2 preset parameter for alignment. Common options include 'lr:hq' for high-quality long reads, 'map-ont' for ONT reads, or 'map-pb' for PacBio reads.
+- **Default**: per-platform — `lr:hqae` for `pacbio`, `lr:hq` for `ont`
+- **Description**: Minimap2 `-ax` preset for the **initial DSA alignment** (`align` rule). By default it is chosen per-sample from the manifest `platform` column. Setting this key overrides the per-platform default for **every** sample. The shared-reference realignment (`realign_to_shared_ref`) is a separate process and always uses `lr:hq` regardless of this setting.
 - **Example**: `mm2_preset: "map-ont"`
 
 ### `mm2_extra_options`

@@ -79,22 +79,20 @@ pixi run snakemake --configfile config/config.yaml --profile workflow/profiles/d
 
 ```
 BAM/CRAM(s) per sample
-  |
-  +-- long-read --> extract_fastq -> align (mm2 -> DSA) -+
-  +-- illumina  --------------------> align_illumina ---+
-                                                        |
-                                              haplotag_and_sort
-                                                        |
-                              +-- fiber-seq -> (modkit if ONT) -> fire -+
-                              +-- non-fiber-seq -----------------------+
-                                                        |
-                                                  merge_sample
-                                                        |
-                              +-- fiber-seq -> qc_fiberseq (ft validate + ft qc)
-                              +-- long-read non-fs -> qc_longread_nofs (samtools stats)
-                              +-- illumina -> qc_illumina (stats + flagstat)
-                                                        |
-                                (optional) realign_to_shared_ref (mm2 | bwa)
+|
++-- long-read -> extract_fastq -> align (minimap2 -> DSA) ------+
++-- illumina  ------------------> align_illumina (bwa -> DSA) --+
+                                                                |
+                                                       haplotag_and_sort
+                                                                |
+                                                                +-- fiber-seq -> (modkit if ONT) -> fire -+
+                                                                +-- non-fiber-seq ------------------------+
+                                                                                                          |
+                                                                                                     merge_sample
+                                                                                                          |
+                                                                                                          +-- fiber-seq -> qc_fiberseq (ft validate + ft qc)
+                                                                                                          +-- long-read non-fs -> qc_longread_nofs (samtools stats)
+                                                                                                          +-- illumina -> qc_illumina (stats + flagstat)
 ```
 
 ## Outputs

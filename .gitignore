@@ -4,3 +4,7 @@ logs/**
 temp/**
 .snakemake
 .snakemake/**
+.claude
+.claude/**
+docs
+docs/**

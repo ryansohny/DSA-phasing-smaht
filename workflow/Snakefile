@@ -6,6 +6,8 @@
 import os
 import sys
 import pprint
+import shutil
+import subprocess
 
 from snakemake.utils import validate
 from snakemake.utils import min_version
@@ -89,6 +91,48 @@ with open(config["manifest"]) as fh:
                         f"({existing[key]!r} vs {new_val!r})"
                     )
             existing["bam"].extend(bam_files)
+
+
+def has_fiberseq_pg(bam_path):
+    """True iff a @PG header line was written by fibertools-rs (ft predict-m6a).
+
+    This is the PacBio Fiber-seq fingerprint: genuine Fiber-seq HiFi data is
+    m6A-called by `ft predict-m6a`, which stamps a `PN:fibertools-rs` @PG line.
+    Reads only the header (no reference needed).
+    """
+    header = subprocess.run(
+        ["samtools", "view", "-H", bam_path],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return any(
+        line.startswith("@PG") and "PN:fibertools-rs" in line
+        for line in header.splitlines()
+    )
+
+
+# Sanity check: PacBio samples marked fiber-seq=true must carry the fibertools-rs
+# @PG signature in every input BAM/CRAM. (ONT Fiber-seq inputs get their m6A from
+# modkit inside the workflow, so they are not checked here.)
+_pb_fs_samples = [
+    sm
+    for sm in MANIFEST
+    if MANIFEST[sm]["platform"] == "pacbio" and MANIFEST[sm]["fiber-seq"]
+]
+if _pb_fs_samples and shutil.which("samtools") is None:
+    raise ValueError(
+        "samtools not found on PATH; it is required at load time to validate "
+        "PacBio Fiber-seq inputs (fiber-seq=true)."
+    )
+for _sm in _pb_fs_samples:
+    for _bam in MANIFEST[_sm]["bam"]:
+        if not has_fiberseq_pg(_bam):
+            raise ValueError(
+                f"Sample {_sm}: fiber-seq=true (pacbio) but input {_bam!r} has no "
+                f"fibertools-rs @PG line (expected from `ft predict-m6a`). "
+                f"If this is not Fiber-seq data, set fiber-seq=false in the manifest."
+            )
 
 SHARED_REF = config.get("shared_reference", list())
 

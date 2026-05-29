@@ -1,0 +1,14 @@
+Code	Platform
+A	Illumina_NovaSeqX
+B	PacBio_Revio
+C	Illumina_NovaSeq6000
+D	ONT_PromethION24
+E	ONT_PromethION2Solo
+F	ONT_MiniONMk1B
+G	Illumina_HiSeqX
+H	deprecated
+I	BGI
+J	AVITI
+K	Illumina_NextSeq2000
+L	PacBio_SequelIIe
+M	Ultima_UG100

@@ -1,0 +1,4 @@
+/cram/SMHT005-3AK-001C4-M59-B004-uwsc-SMAFITEST01-pbmm2_1.13.0_GRCh38.aligned.sorted.cram	/ref/hg38.analysisSet.fa	/dsa/DSA_SMHT005_v1.0.0.fasta	/out/SMHT005
+/cram/SMHT005-3A-XX-M59-B001-broad-SMAFITEST02-pbmm2_1.13.0_GRCh38.aligned.sorted.cram	/ref/hg38.analysisSet.fa	/dsa/DSA_SMHT005_v1.0.0.fasta	/out/SMHT005
+/cram/SMHT005-3AF-001E1-M59-D001-uwsc-SMAFITEST03-sentieon_minimap2_202308.01_GRCh38.aligned.sorted.cram	/ref/hg38.analysisSet.fa	/dsa/DSA_SMHT005_v1.0.0.fasta	/out/SMHT005
+/cram/SMHT005-3A-XX-M59-A001-broad-SMAFITEST04-bwa0.7.18_GRCh38.aligned.sorted.cram	/ref/hg38.analysisSet.fa	/dsa/DSA_SMHT005_v1.0.0.fasta	/out/SMHT005

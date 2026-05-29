@@ -7,8 +7,14 @@ rule extract_fastq:
     conda:
         DEFAULT_ENV
     threads: 8
+    params:
+        reference=lambda wc: (
+            f"--reference {config['cram_reference']}"
+            if config.get("cram_reference")
+            else ""
+        ),
     shell:
-        'samtools fastq -@ {threads} -T "*" {input.bam} > {output.fastq}'
+        'samtools fastq -@ {threads} {params.reference} -T "*" {input.bam} > {output.fastq}'
 
 
 rule align:
@@ -25,7 +31,7 @@ rule align:
         mem_mb=MAX_THREADS * 1024,
     params:
         sample=bam_header_sm_settings,
-        mm2_preset=config.get("mm2_preset", "'lr:hq'"),
+        mm2_preset=get_mm2_preset,
         mm2_extra_opts=config.get("mm2_extra_options", ""),
     threads: MAX_THREADS
     shell:
@@ -274,7 +280,7 @@ rule realign_to_shared_ref:
     params:
         sort_memory=3,  # GB per thread
         sample=bam_header_sm_settings,
-        mm2_preset=config.get("mm2_preset", "'lr:hq'"),
+        mm2_preset="'lr:hq'",  # shared-ref realignment always uses lr:hq
         mm2_extra_opts=config.get("mm2_extra_options", ""),
     threads: MAX_THREADS
     shell:
