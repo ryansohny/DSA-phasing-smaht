@@ -8,3 +8,6 @@ temp/**
 .claude/**
 docs
 docs/**
+
+# Local-only planning/spec docs (kept off the public repo)
+docs/superpowers/
