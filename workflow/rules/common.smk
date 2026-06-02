@@ -98,9 +98,39 @@ def get_crais_to_merge(wc):
     return [f"{cram}.crai" for cram in get_crams_to_merge(wc)]
 
 
+import os
+import re
+
+
+def _pinned_version(tool):
+    """Read a tool's pinned version from the conda env file, so output filenames
+    always reflect the aligner version actually used."""
+    path = os.path.join(workflow.basedir, "envs", "env.yml")
+    with open(path) as fh:
+        text = fh.read()
+    m = re.search(rf"{re.escape(tool)}==([0-9][0-9A-Za-z.\-]*)", text)
+    if not m:
+        raise ValueError(f"No pinned version for {tool!r} in {path}")
+    return m.group(1)
+
+
+MM2_VERSION = _pinned_version("minimap2")
+BWA_VERSION = _pinned_version("bwa")
+
+
+def final_cram_name(sm):
+    """Final DSA-aligned CRAM name following the SMaHT convention:
+    {sample}-{aligner}_{version}_DSA.aligned.sorted.cram (aligner by platform)."""
+    if MANIFEST[sm]["platform"] == "illumina":
+        aligner = f"bwa_{BWA_VERSION}"
+    else:
+        aligner = f"minimap2_{MM2_VERSION}"
+    return f"results/{sm}-{aligner}_DSA.aligned.sorted.cram"
+
+
 def get_final_cram(wc):
     """Get the final CRAM file for a sample (merged output for both PacBio and ONT)."""
-    return f"results/{wc.sm}.dsa.cram"
+    return final_cram_name(wc.sm)
 
 
 def bam_header_sm_settings(wc):

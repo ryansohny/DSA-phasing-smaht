@@ -158,7 +158,7 @@ include: "rules/dsa-phase.smk"
 # Build the list of needed outputs by dispatching on each sample's platform/fiber-seq.
 needed_outputs = []
 for sm in SMs:
-    needed_outputs.append(f"results/{sm}.dsa.cram")
+    needed_outputs.append(final_cram_name(sm))
     if MANIFEST[sm]["fiber-seq"]:
         needed_outputs.append(f"results/{sm}.qc.tbl.gz")
     elif MANIFEST[sm]["platform"] == "illumina":

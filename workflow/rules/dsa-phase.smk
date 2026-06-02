@@ -111,6 +111,7 @@ rule haplotag_and_sort:
         " --hap1-tag {params.h1_tag} --hap2-tag {params.h2_tag}"
         " {params.reset_mapq} {params.reset_mapq_before}"
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
+        " -T temp/{wildcards.sm}.{wildcards.file_idx}.sort"
         " | samtools view -C -@ {threads} -T {input.dsa}"
         "  --output-fmt-option embed_ref=1"
         "  --output-fmt-option store_md=1"
@@ -173,8 +174,10 @@ rule merge_sample:
         crais=get_crais_to_merge,
         dsa=get_dsa,
     output:
-        cram="results/{sm}.dsa.cram",
-        crai="results/{sm}.dsa.cram.crai",
+        cram="results/{sm}-{aligner}_DSA.aligned.sorted.cram",
+        crai="results/{sm}-{aligner}_DSA.aligned.sorted.cram.crai",
+    wildcard_constraints:
+        aligner=r"(minimap2|bwa)_[0-9][0-9.]*",
     conda:
         DEFAULT_ENV
     threads: 16
@@ -284,7 +287,7 @@ rule realign_to_shared_ref:
         mm2_extra_opts=config.get("mm2_extra_options", ""),
     threads: MAX_THREADS
     shell:
-        "minimap2"
+        "mkdir -p temp && minimap2"
         " -t {threads}"
         " --secondary=no -I 8G --eqx --MD -Y -y"
         " -ax {params.mm2_preset}"
@@ -292,6 +295,7 @@ rule realign_to_shared_ref:
         ' {input.ref} <(samtools fastq -@ {threads} -T "*" {input.bam})'
         " | rb add-rg -u {params.sample} -t {threads} {input.bam}"
         " | samtools sort -u -@ {threads} -m {params.sort_memory}G"
+        " -T temp/{wildcards.sm}.shared.sort"
         " | samtools view -C -@ {threads} -T {input.ref}"
         "  --output-fmt-option embed_ref=1"
         "  --output-fmt-option store_md=1"
@@ -323,6 +327,7 @@ rule realign_to_shared_ref_illumina:
         ),
     shell:
         r"""
+        mkdir -p temp
         samtools collate -u -O --threads {threads} {input.bam} \
           | samtools fastq -n - \
           | bwa mem -p -t {threads} \
@@ -333,7 +338,7 @@ rule realign_to_shared_ref_illumina:
                 {params.bwa_extra} \
                 {input.ref} - \
           | samblaster --acceptDupMarks --addMateTags \
-          | samtools sort -u -@ {threads} -m {params.sort_memory}G \
+          | samtools sort -u -@ {threads} -m {params.sort_memory}G -T temp/{wildcards.sm}.shared.sort \
           | samtools view -C -@ {threads} -T {input.ref} \
               --output-fmt-option embed_ref=1 \
               --output-fmt-option store_md=1 \
