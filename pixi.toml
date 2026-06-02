@@ -1,7 +1,7 @@
 [workspace]
-authors = ["Mitchell R. Vollger <mrvollger@gmail.com>"]
+authors = ["Min-Hwan \"Sohny\" Sohn <phenomata@gmail.com>"]
 channels = ["conda-forge", "bioconda"]
-description = "Snakemake workflow for phasing long reads using Donor-Specific Assemblies"
+description = "Snakemake workflow for phasing long reads using Donor-Specific genome Assemblies"
 name = "DSA-phasing"
 platforms = ["linux-64", "osx-64"]
 version = "0.1.2"
