@@ -115,7 +115,7 @@ See [config/README.md](config/README.md) for the full list of configuration opti
 
 ## Disclaimer
 
-The repository is entirely based on the [Mitchell's DSA-phasing repository](https://github.com/ryansohny/DSA-phasing), and re-written with the help of Claude code (Opus-4.6,-4.7 and -4.8)
+The repository is entirely based on the [Mitchell's DSA-phasing repository](https://github.com/ryansohny/DSA-phasing-smaht), and re-written with the help of Claude code (Opus-4.6,-4.7 and -4.8)
 
 ## Citation
 
@@ -123,7 +123,7 @@ If you use this workflow, please cite this repository:
 
 > Vollger, M.R. DSA-phasing. https://github.com/vollgerlab/DSA-phasing
 or
-> Sohn, M-H DSA-phasing. https://github.com/ryansohny/DSA-phasing
+> Sohn, M-H DSA-phasing. https://github.com/ryansohny/DSA-phasing-smaht
 
 ## Stage 2: per-tissue merge + coverage + mCG
 
