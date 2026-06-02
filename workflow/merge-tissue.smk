@@ -104,3 +104,108 @@ print(
 rule all:
     input:
         TARGETS
+
+
+def merge_inputs(wc):
+    """Per-sample CRAMs to merge — but empty once the merged CRAM already exists,
+    so a re-run after the inputs were deleted is a clean no-op instead of a
+    MissingInputException."""
+    if os.path.exists(merged_cram(wc.tissue)):
+        return []
+    return [
+        os.path.join(RESULTS_DIR, f"{s}-{TOKEN}_DSA.aligned.sorted.cram")
+        for s in GROUPS[wc.tissue]["samples"]
+    ]
+
+
+def _merge_cmd(wc, input, output):
+    crams = list(input)
+    if not crams:
+        return "true"  # merged CRAM already present; rule will not execute
+    if GROUPS[wc.tissue]["action"] == "copy":
+        src = crams[0]
+        return f"cp {src} {output.cram} && cp {src}.crai {output.crai}"
+    cmd = merge_command({"output": output.cram, "inputs": crams}, THREADS)
+    return " ".join(cmd)
+
+
+rule merge_tissue:
+    input:
+        crams=merge_inputs,
+    output:
+        cram=os.path.join(OUTPUT_DIR, f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.cram"),
+        crai=os.path.join(OUTPUT_DIR, f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.cram.crai"),
+    params:
+        cmd=lambda wc, input, output: _merge_cmd(wc, input, output),
+    conda:
+        DEFAULT_ENV
+    threads: THREADS
+    resources:
+        runtime=24 * 60,
+        mem_mb=THREADS * 1024,
+    shell:
+        "{params.cmd}"
+
+
+rule mosdepth_tissue:
+    input:
+        cram=lambda wc: merged_cram(wc.tissue),
+    output:
+        summary=os.path.join(
+            OUTPUT_DIR, "Depth", f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.mosdepth.summary.txt"
+        ),
+    params:
+        cmd=lambda wc: " && ".join(
+            " ".join(c)
+            for c in mosdepth_commands(merged_cram(wc.tissue), GROUPS[wc.tissue]["dsa"], MOSDEPTH_THREADS)
+        ),
+    conda:
+        DEFAULT_ENV
+    threads: MOSDEPTH_THREADS
+    resources:
+        runtime=12 * 60,
+        mem_mb=8 * 1024,
+    shell:
+        "{params.cmd}"
+
+
+rule mcg_tissue:
+    input:
+        cram=lambda wc: merged_cram(wc.tissue),
+    output:
+        bed=os.path.join(
+            OUTPUT_DIR, "mCG", f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.combined.bed.gz"
+        ),
+    params:
+        cmd=lambda wc: " && ".join(
+            " ".join(c)
+            for c in mcg_commands(merged_cram(wc.tissue), GROUPS[wc.tissue]["dsa"], THREADS, BAMTOCPG)
+        ),
+    conda:
+        DEFAULT_ENV
+    threads: THREADS
+    resources:
+        runtime=24 * 60,
+        mem_mb=THREADS * 1024,
+    shell:
+        "{params.cmd}"
+
+
+rule cleanup_originals:
+    """Opt-in: after the merged CRAM is realized + indexed, delete the per-sample
+    results/ CRAMs that fed it. Sentinel-marked so re-runs are no-ops."""
+    input:
+        cram=lambda wc: merged_cram(wc.tissue),
+        crai=lambda wc: merged_cram(wc.tissue) + ".crai",
+    output:
+        sentinel=touch(os.path.join(OUTPUT_DIR, ".{tissue}.cleaned")),
+    params:
+        originals=lambda wc: " ".join(
+            os.path.join(RESULTS_DIR, f"{s}-{TOKEN}_DSA.aligned.sorted.cram")
+            for s in GROUPS[wc.tissue]["samples"]
+        ),
+    shell:
+        r"""
+        test -s {input.cram} && test -s {input.crai}
+        for f in {params.originals}; do rm -f "$f" "$f".crai; done
+        """
