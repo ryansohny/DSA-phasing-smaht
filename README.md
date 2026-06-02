@@ -1,4 +1,4 @@
-# DSA-phasing
+# DSA-phasing-smaht
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥9.0.0-brightgreen.svg)](https://snakemake.github.io)
 
@@ -29,8 +29,8 @@ curl -fsSL https://pixi.sh/install.sh | bash
 ### Installation
 
 ```bash
-git clone https://github.com/vollgerlab/DSA-phasing.git
-cd DSA-phasing
+git clone https://github.com/ryansohny/DSA-phasing-smaht.git
+cd DSA-phasing-smaht
 pixi install
 ```
 
@@ -115,14 +115,12 @@ See [config/README.md](config/README.md) for the full list of configuration opti
 
 ## Disclaimer
 
-The repository is entirely based on the [Mitchell's DSA-phasing repository](https://github.com/ryansohny/DSA-phasing-smaht), and re-written with the help of Claude code (Opus-4.6,-4.7 and -4.8)
+The repository is entirely based on the [Mitchell's DSA-phasing repository](https://github.com/vollgerlab/DSA-phasing), and re-written with the help of Claude code (Opus-4.6,-4.7 and -4.8)
 
 ## Citation
 
 If you use this workflow, please cite this repository:
 
-> Vollger, M.R. DSA-phasing. https://github.com/vollgerlab/DSA-phasing
-or
 > Sohn, M-H DSA-phasing. https://github.com/ryansohny/DSA-phasing-smaht
 
 ## Stage 2: per-tissue merge + coverage + mCG
