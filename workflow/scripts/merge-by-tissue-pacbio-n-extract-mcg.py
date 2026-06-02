@@ -20,7 +20,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import defopt
 import pandas as pd
 
 RESULT_GLOB = "{sample}-*_DSA.aligned.sorted.cram"
@@ -70,6 +69,8 @@ def aligner_token(cram_name, sample):
 def build_plan(decode_tsv, results_dir, output_dir, group_keys, skip_merge=False):
     """Group decode rows and resolve each group's inputs/output. Returns a list of
     dicts describing the planned merges/copies."""
+    results_dir = Path(results_dir)
+    output_dir = Path(output_dir)
     df = pd.read_csv(decode_tsv, sep="\t", dtype=str)
 
     groups = {}  # label -> list of row dicts
@@ -432,4 +433,6 @@ def main(
 
 
 if __name__ == "__main__":
+    import defopt
+
     defopt.run(main, show_types=True, version="0.0.1")
