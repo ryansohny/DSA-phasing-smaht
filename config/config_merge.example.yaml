@@ -1,0 +1,9 @@
+# Stage-2 (per-tissue merge + mosdepth + mCG) config.
+# Run: pixi run snakemake --snakefile workflow/merge-tissue.smk \
+#        --configfile config/config_merge.example.yaml --profile profiles/slurm-executor
+decode: SMHT005_PacBio_decode.tsv          # decode.tsv from make-manifest.py
+output_dir: /path/to/Donor/PacBio          # REQUIRED destination for merged CRAMs + Depth/ + mCG/
+results_dir: results                       # where per-sample DSA CRAMs live (default: results)
+delete_originals: false                    # opt-in: delete consumed per-sample CRAMs after merge
+threads: 40                                # merge + pb-CpG threads (mosdepth capped at 4)
+# bamtocpg: /path/to/aligned_bam_to_cpg_scores   # override the bundled default if needed
