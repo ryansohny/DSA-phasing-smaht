@@ -11,3 +11,12 @@ docs/**
 
 # Local-only planning/spec docs (kept off the public repo)
 docs/superpowers/
+
+# Per-donor run data (kept local, not version-controlled)
+SMHT*_decode.tsv
+config/manifest_SMHT*.tbl
+config/config_SMHT*.yaml
+
+# Python bytecode
+__pycache__/
+*.pyc
