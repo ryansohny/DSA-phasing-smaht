@@ -61,6 +61,19 @@ if len(_donors) != 1:
 DONOR = _donors.pop()
 IS_PACBIO = all(p.startswith("PacBio") for p in _df["platform"])
 
+# Fiber-seq cells (decode 'assay' == "Fiber-seq"), grouped per tissue. Fiber cells
+# are ALSO merged separately into output_dir/Fiber-seq/ (kept, no mosdepth/mCG),
+# in addition to being part of the main all-cells tissue merge.
+_assay = dict(zip(_df["sample"], _df["assay"]))
+
+
+def _is_fiber(sample):
+    return _assay.get(sample, "") == "Fiber-seq"
+
+
+FIBER_GROUPS = {t: [s for s in GROUPS[t]["samples"] if _is_fiber(s)] for t in GROUPS}
+FIBER_GROUPS = {t: ss for t, ss in FIBER_GROUPS.items() if ss}
+
 
 def merged_cram(tissue):
     return os.path.join(OUTPUT_DIR, f"{DONOR}-{tissue}-{TOKEN}_DSA.aligned.sorted.cram")
@@ -80,6 +93,12 @@ def cleaned_sentinel(tissue):
     return os.path.join(OUTPUT_DIR, f".{tissue}.cleaned")
 
 
+def fiber_cram(tissue):
+    return os.path.join(
+        OUTPUT_DIR, "Fiber-seq", f"{DONOR}-{tissue}-{TOKEN}_DSA.aligned.sorted.cram"
+    )
+
+
 wildcard_constraints:
     tissue="|".join(re.escape(t) for t in GROUPS) or r"(?!.*)",
 
@@ -91,6 +110,8 @@ for _t in GROUPS:
     TARGETS.append(mosdepth_summary(_t))
     if IS_PACBIO:
         TARGETS.append(mcg_bed(_t))
+    if _t in FIBER_GROUPS:
+        TARGETS.append(fiber_cram(_t))
     if DELETE_ORIGINALS:
         TARGETS.append(cleaned_sentinel(_t))
 
@@ -191,12 +212,72 @@ rule mcg_tissue:
         "{params.cmd}"
 
 
-rule cleanup_originals:
-    """Opt-in: after the merged CRAM is realized + indexed, delete the per-sample
-    results/ CRAMs that fed it. Sentinel-marked so re-runs are no-ops."""
+def fiber_merge_inputs(wc):
+    """Fiber-seq per-sample CRAMs for the tissue; empty once the Fiber-seq merge
+    already exists (idempotent re-run after deletion)."""
+    if os.path.exists(fiber_cram(wc.tissue)):
+        return []
+    return [
+        os.path.join(RESULTS_DIR, f"{s}-{TOKEN}_DSA.aligned.sorted.cram")
+        for s in FIBER_GROUPS[wc.tissue]
+    ]
+
+
+def _fiber_merge_cmd(wc, input, output):
+    crams = list(input)
+    if not crams:
+        return "true"  # fiber merge already present; rule will not execute
+    if len(crams) == 1:
+        src = crams[0]
+        return f"cp {src} {output.cram} && cp {src}.crai {output.crai}"
+    cmd = merge_command({"output": output.cram, "inputs": crams}, THREADS)
+    return " ".join(cmd)
+
+
+rule merge_tissue_fiberseq:
+    """Merge the tissue's Fiber-seq cells into output_dir/Fiber-seq/ (kept; no
+    mosdepth/mCG). Fiber cells also appear in the main all-cells tissue merge."""
     input:
-        cram=lambda wc: merged_cram(wc.tissue),
-        crai=lambda wc: merged_cram(wc.tissue) + ".crai",
+        crams=fiber_merge_inputs,
+    output:
+        cram=os.path.join(
+            OUTPUT_DIR, "Fiber-seq", f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.cram"
+        ),
+        crai=os.path.join(
+            OUTPUT_DIR,
+            "Fiber-seq",
+            f"{DONOR}-{{tissue}}-{TOKEN}_DSA.aligned.sorted.cram.crai",
+        ),
+    wildcard_constraints:
+        tissue="|".join(re.escape(t) for t in FIBER_GROUPS) or r"(?!.*)",
+    params:
+        cmd=lambda wc, input, output: _fiber_merge_cmd(wc, input, output),
+    conda:
+        DEFAULT_ENV
+    threads: THREADS
+    resources:
+        runtime=24 * 60,
+        mem_mb=THREADS * 1024,
+    shell:
+        "{params.cmd}"
+
+
+def cleanup_deps(wc):
+    """Merged outputs that must exist (and be verified) before a tissue's
+    per-sample results/ CRAMs are deleted: the main all-cells merge, plus the
+    Fiber-seq merge when the tissue has fiber cells (fiber cells feed both)."""
+    deps = [merged_cram(wc.tissue), merged_cram(wc.tissue) + ".crai"]
+    if wc.tissue in FIBER_GROUPS:
+        deps += [fiber_cram(wc.tissue), fiber_cram(wc.tissue) + ".crai"]
+    return deps
+
+
+rule cleanup_originals:
+    """Opt-in: after every merge that consumes a tissue's cells is realized +
+    indexed, delete ALL of that tissue's per-sample results/ CRAMs (WGS and
+    Fiber-seq). Sentinel-marked so re-runs are no-ops."""
+    input:
+        merged=cleanup_deps,
     output:
         sentinel=touch(os.path.join(OUTPUT_DIR, ".{tissue}.cleaned")),
     params:
@@ -206,6 +287,6 @@ rule cleanup_originals:
         ),
     shell:
         r"""
-        test -s {input.cram} && test -s {input.crai}
+        for f in {input.merged}; do test -s "$f"; done
         for f in {params.originals}; do rm -f "$f" "$f".crai; done
         """
