@@ -156,7 +156,4 @@ def samples_by(predicate):
 
 
 FIBERSEQ_SMS = samples_by(lambda sm: MANIFEST[sm]["fiber-seq"])
-LONGREAD_NOFS_SMS = samples_by(
-    lambda sm: not MANIFEST[sm]["fiber-seq"] and MANIFEST[sm]["platform"] != "illumina"
-)
 ILLUMINA_SMS = samples_by(lambda sm: MANIFEST[sm]["platform"] == "illumina")

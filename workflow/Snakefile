@@ -162,11 +162,7 @@ for sm in SMs:
     if MANIFEST[sm]["fiber-seq"]:
         needed_outputs.append(f"results/{sm}.qc.tbl.gz")
     elif MANIFEST[sm]["platform"] == "illumina":
-        needed_outputs.append(f"results/{sm}.samtools.stats.txt")
         needed_outputs.append(f"results/{sm}.flagstat.txt")
-    else:
-        # long-read non-Fiber-seq
-        needed_outputs.append(f"results/{sm}.samtools.stats.txt")
 
 # Realign to shared reference if provided.
 if len(SHARED_REF) > 0:

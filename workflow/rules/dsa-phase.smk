@@ -225,30 +225,11 @@ rule qc_fiberseq:
         """
 
 
-rule qc_longread_nofs:
-    """Long-read non-Fiber-seq QC: samtools stats only."""
-    input:
-        cram=get_final_cram,
-    output:
-        txt="results/{sm}.samtools.stats.txt",
-    wildcard_constraints:
-        sm=LONGREAD_NOFS_SMS,
-    conda:
-        DEFAULT_ENV
-    resources:
-        runtime=12 * 60,
-        mem_mb=8 * 1024,
-    threads: 8
-    shell:
-        "samtools stats -@ {threads} {input.cram} > {output.txt}"
-
-
 rule qc_illumina:
-    """Illumina QC: samtools stats + flagstat."""
+    """Illumina QC: samtools flagstat."""
     input:
         cram=get_final_cram,
     output:
-        stats="results/{sm}.samtools.stats.txt",
         flagstat="results/{sm}.flagstat.txt",
     wildcard_constraints:
         sm=ILLUMINA_SMS,
@@ -259,10 +240,7 @@ rule qc_illumina:
         mem_mb=8 * 1024,
     threads: 8
     shell:
-        """
-        samtools stats -@ {threads} {input.cram} > {output.stats}
-        samtools flagstat -@ {threads} {input.cram} > {output.flagstat}
-        """
+        "samtools flagstat -@ {threads} {input.cram} > {output.flagstat}"
 
 
 # realign to shared reference if provided
